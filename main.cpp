@@ -316,8 +316,8 @@ int choosedir(int site, int d)
 // randprob() just returns a random number between zero and one.
 float randprob()
 {
-	float f = rand();
-	return f / RAND_MAX;
+    float f = rand();
+    return f / RAND_MAX;
 }
 
 
@@ -325,7 +325,7 @@ float randprob()
 // randsite0 finds a random plaquette that may or may not be occupied
 int randsite0()
 {
-	return (rand() % size);
+    return (rand() % size);
 }
 
 // randsite0(skip) finds a random plaquette that skips the first and last skip rows and columns
@@ -1239,7 +1239,7 @@ void addtricluster2(int site, float c) // Has already added the rigidcluster fun
 
 
             }
-
+			// choose some densities for the rigid cluster
             giantindex=rigidcluster();
             giantsize=giantrclustersize(giantindex);
             
@@ -1489,14 +1489,14 @@ void pruntri(float p1, float p2, float dp, float c1, float c2, float dc, int tri
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// FIXED-NUMBER TRIALS AND ATTENDANT FUNCTIONS
+// fixed-number trials and attendant functions
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 // addrandombracesfixedn adds ntoadd random braces to sites, taking care that braces do not overlap one another.
-// It should give an error if there aren't enough sites to accommodate all the braces.
+// it should give an error if there aren't enough sites to accommodate all the braces.
 void addrandombracesfixedn(int ntoadd)
 {
 
@@ -1520,7 +1520,7 @@ void onetrialfixedn(int ntoadd)
 
 	addrandombracesfixedn(ntoadd);
 
-	cout << "\nWhen the number of vertices on a side is " << ll << " and the number of random braces placed is \n"
+	cout << "\nwhen the number of vertices on a side is " << ll << " and the number of random braces placed is \n"
 		<< ntoadd << " the number of floppy modes is\n" << 2 * ll*ll - numbonds << endl;
 
 }
@@ -1591,21 +1591,21 @@ void nrun(int trial)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// RIGIDITY TESTING
+// rigidity testing
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 // a site is rigid if a bond we placed there would be redundant, when loadsite() returns 0.
-// So we just try to load the site to see if it is rigid
+// so we just try to load the site to see if it is rigid
 
 bool isrigidsquare(int i)
 {
 
 	if (i % ll == ll - 1 || i >= ll*(ll - 1))
 	{
-		cout << "I tried to load a site that fell out of the system!" << endl;
+		cout << "i tried to load a site that fell out of the system!" << endl;
 	}
 
 	return !loadsites(i, i + ll + 1);
@@ -1631,7 +1631,7 @@ bool isrigidbulk(int skip, int tries)
 	{
 		if (yescount < tries)
 		{
-			cout << "I got ambiguous results when testing bulk rigidity, which shouldn't happen for large systems\n";
+			cout << "i got ambiguous results when testing bulk rigidity, which shouldn't happen for large systems\n";
 		}
 		return 1;
 	}
@@ -1714,12 +1714,12 @@ void rigiditymap()
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// RIGID CLUSTER
+// rigid cluster
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void initrcluster() // Initialize the rcluster array to store the network
+void initrcluster() // initialize the rcluster array to store the network
 {
     for(int i=0; i<=size-1; i++)
     {
@@ -1728,9 +1728,9 @@ void initrcluster() // Initialize the rcluster array to store the network
     giantsize=0;
 }
 
-bool isredundant(int i, int j)  //See if the test bond between (i,j) is redundant(dependent)
+bool isredundant(int i, int j)  //see if the test bond between (i,j) is redundant(dependent)
 {
-    if (numbonds < 2 * size - 3 && loadsites(i, j))			// If there are at least four pebbles left, we try to load the sites
+    if (numbonds < 2 * size - 3 && loadsites(i, j))			// if there are at least four pebbles left, we try to load the sites
     {
         return 0;				// if we succeed, then the edge from i to j is independent
     }
@@ -1738,16 +1738,16 @@ bool isredundant(int i, int j)  //See if the test bond between (i,j) is redundan
     {
         return 1;			// otherwise, the edge is redundant(dependent)
     }
-    
+
 }
 
-int rigidcluster() // Mark the rigid clusters and put into rcluster, and return the size of the giant rigid cluster.
+int rigidcluster() // mark the rigid clusters and put into rcluster, and return the size of the giant rigid cluster.
 {
     initrcluster();
     int rcnum=1; //index of the rigid cluster
     int giantsize=2; //if there exists any bond, the smallest possible giant rigid cluster size is 2
     int giantindex_process=0; //the index for the giant rigid cluster (in this function)
-    
+
     for(int i=0; i<=size-1; i++)
     {
         if (rcluster[i]==1 && !thegraph[i].empty())
@@ -1755,8 +1755,8 @@ int rigidcluster() // Mark the rigid clusters and put into rcluster, and return 
             for (int index=thegraph[i].size()-1; index>=0; index--)
             {
                 if (rcluster[thegraph[i][index]]==1)
-                { //The bond exists and not in some rigid clusters
-                    
+                { //the bond exists and not in some rigid clusters
+
                     int rclustersize=2;//the size of this rigid cluster
                     rcnum++;
                     rcluster[i]=rcnum;
@@ -1764,44 +1764,37 @@ int rigidcluster() // Mark the rigid clusters and put into rcluster, and return 
                     for (int t=0; t<=size-1; t++)
                     {
                         if (rcluster[t]==1)
-                        {   //The test site which is not in some rigid clusters
+                        {   //the test site which is not in some rigid clusters
                             if (isredundant(i, t) && isredundant(thegraph[i][index], t))
-                            {   //See if t is in the rigid cluster of (i,thegraph[i][index])
+                            {   //see if t is in the rigid cluster of (i,thegraph[i][index])
                                 rcluster[t]=rcnum;
                                 rclustersize++;
                             }
                         }
                     }
-                    
+
                     if (rclustersize>=giantsize) //update the size of the giant rigid cluster
                     {
                         giantsize=rclustersize;
                         giantindex_process=rcnum;
                     }
-                    
+
                 }
             }
         }
     }
-    /*
-    if (numbonds==0) {
-        return 1;
-    } else {
-        return giantsize-1;
-    }
-    */
-    
-    // Pick out the giant rigid cluster and store it in the vector "giantrigidcluster" (!!! We need it to become a undirected adjacent list)
-    initgiantrigidcluster(); //Empty the vector array first
+
+    // pick out the giant rigid cluster and store it in the vector "giantrigidcluster" (!!! we need it to become a undirected adjacent list)
+    initgiantrigidcluster(); //empty the vector array first
     for (int i=0; i<=size-1; i++) {
-        if (rcluster[i]==giantindex_process) {
-            for (int index=thegraph[i].size()-1; index>=0; index--) {
-                if (rcluster[thegraph[i][index]]==giantindex_process) { // If the bond is connected to another site in the giant rigid cluster
-                    giantrigidcluster[i].push_back(thegraph[i][index]);
-                    giantrigidcluster[thegraph[i][index]].push_back(i);// The giantrigidcluster graph is a undirected graph
+            if (rcluster[i]==giantindex_process) {
+                for (int index=thegraph[i].size()-1; index>=0; index--) {
+                    if (rcluster[thegraph[i][index]]==giantindex_process) { // if the bond is connected to another site in the giant rigid cluster
+                        giantrigidcluster[i].push_back(thegraph[i][index]);
+                        giantrigidcluster[thegraph[i][index]].push_back(i);// The giantrigidcluster graph is a undirected graph
+                    }
                 }
             }
-        }
     }
     
     return giantindex_process;
@@ -1851,36 +1844,6 @@ int giantrclustersize(int giantindex_in) //To find the size for the giant rigid 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Old algorithm(Incorrect)
-/*
-bool columnconnect(int giantindex_in, int columnindex) //To see if the column we check has the connected bond to the column next to it. If there is no site in that column for the rigid cluster, also return False. (columnindex from 0 to ll-1)
-{
-    for (int i=columnindex; i<=size-1; i=i+ll)//column m=columnindex
-        for (int j=moveright(columnindex); j<=size-1; j=j+ll)//column m+1
-        {
-            if (rcluster[i]==giantindex_in && rcluster[j]==giantindex_in)//both are in the giant rigid cluster
-            {
-                if (contains(i, j)||contains(j, i))//find a connected bond between these columns in the giant rigid cluster
-                {
-                    return true;
-                }
-            }
-        }
-    return false; //return 0 after the for loop
-}
-
-bool spanningrcluster(int giantindex_in) //To find whether the giant rigid cluster is a spanning cluster
-{
-    for (int column=0; column<=ll-1; column++)
-    {
-        if (!columnconnect(giantindex_in, column)) {
-            return false;
-        }
-    }
-    return true;
-}
-*/
 
 // We need to pick out the giant rigid cluster from the network and then determine if it is the spanning cluster.
 
@@ -1959,10 +1922,6 @@ bool spanningrcluster(int giantindex_in)
 
 int main()
 {
-
-
-
-
     //myfile.open("tridata2.txt");										// Opens a file to write to
 	//myfile << "test\n";
 
@@ -1971,166 +1930,13 @@ int main()
 	//unsigned seed = t1;
 	srand(time(NULL));
 
-
-	/*
-	for (int pcindex = 0; pcindex < size; pcindex++) // Just setting the pebble count to 2 everywhere.
-	{
-	pc[pcindex] = 2;
-	}
-
-	addbond(0, 1);
-	addbond(1, 2);
-	addbond(2, 3);
-	addbond(3, 0);
-	addbond(0, 2);
-	addbond(1, 3);
-
-	report();
-
-	initializegraph();
-
-	report();
-
-	addrandombraces(.5);
-
-	report();
-	*/
-
-	/*
-	initializegraph();
-	addbond(0, 4);
-	addbond(1, 5);
-	addbond(3, 7);
-	addbond(4, 8);
-	addbond(1, 8);
-	*/
-
-
-	//onetrialfixedn(2 * ncrit);
-	//onetrial(pcrit);
-	//cout << "The mean number of floppy modes was " << onetrialfixedn(ncrit) << endl;
-	//initializegraph();
-	//addrandombracesfixedn(10);
-
-	//prun(0, .03, .003,1);
-
-
-
-
-	/*
-	for (int index = 0; index < 50; index++)
-	{
-		cout << "With ll = " << ll << ", a random site is " << randsite0() << endl;
-	}
-
-
-	cout << "\n\n Is the number 1 plaquette empty: " << isempty(1);
-
-	addbond(1, ll + 1 + 1);
-
-	cout << "\n\n Is the number 1 plaquette empty: " << isempty(1);
-
-	for (int index = 0; index < 50; index++)
-	{
-		cout << "With ll = " << ll << ", a random site is " << randsite() << endl;
-	}
-	*/
-
-
-	/*
-	initializegraph();
-	addrandombracesfixedn(2);
-
-	report();
-
-	*/
-
-	//cout << "When the number of vertices on a side is ll = " << ll << " and 17 vertices are added, the mean number of floppy modes"
-	//	<< " remaining is " << multitrialfixedn(197, 1) << endl;
-
-	//nrun(50);
-
-	//cout << "The probability of bulk rigidity with L = 60, N = 110: " << probrigidbulk(110, 10, 10, 4) << endl;
-
-	//probrigidbulkrun(-6, 3, 100, 10, 3);
-
-
-
-	//initializegraph();
-
-	//addrandombracesfixedn(56);
-
-
-	//rigiditymap();
-
-
-
-
-
-
-   // cout << "\n I initiated the triangular lattice and it had a number of particles: " << inittrigraph(.5) << endl;
-
-
-
-    //onetritrial(1.);
-
-    //cout << "\n The average number of floppy modes is: " << multitritrial(.8,50) << endl;
-
-    //pruntri(.01,2.,.05,0.,1.001,.1,1);
-
-
-    //tritrials(ll*ll*4,0.,2);
-
-    //plot();
-
-    //onetritrial2(10,0.);
-
-
-    //multictrial(ll*ll*4,0.,1.01,.2,1);
-
+    //multictrial(ll*ll*100000,0.0,0.1,.2,20); //That's it!
     
-    multictrial(ll*ll*100000,0.0,0.1,.2,20); //That's it!
-    
-    /*
-    float cfor;
-    int time;
-    cout<<"Type in the number for constant c: \n";
-    cin>>cfor;
-    cout<<"Type in the time constant t: \n";
-    cin>>time;
-            
-    onetritrial2(ll*ll*time,cfor);
-    */
-    
-    /*
-    
-    onetritrial2(ll*ll*30,.6);
-    
-    int giantsize;
-    
-    giantsize=rigidcluster();
-    
-    
-    cout<<"the size of the giant cluster is "<<giantsize<<"\n";
-    cout<<"the number of particles is "<<numparts<<"\n";
-    cout<<"the number of bonds is "<<numbonds<<"\n";
-    cout<<"the number of redundant bonds is "<<rbonds<<"\n";
-    
-    
-    plot();
-    
-    cout<<"============================================================================================================="<<endl;
-    cout<<"============================================================================================================="<<endl;
-    cout<<"============================================================================================================="<<endl;
+    float cfor = 0.0; // correlation constant
+    int trial = 1; // trial counting
 
-    plotrcluster();
-     */
-
-
-
-
-
-
+	setfilestream(cfor,trial);
+    onetritrial2(ll*ll*300000,cfor);
 
 	t2 = clock();
 	float clocktime((float)t2 - (float)t1);
