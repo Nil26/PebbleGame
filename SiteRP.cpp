@@ -6,6 +6,8 @@
 #include <vector>
 #include <stack>
 #include <fstream>
+#include <math.h>				// Basic math functions
+#include <time.h>				// Get clock time, to measure total run time
 
 using namespace std;
 
@@ -20,8 +22,11 @@ public:
     pair<int,int> vertex() const { return vertices;};
 };
 
-class Graph{
-    const int ll;																					// The number of vertices on a side of the lattice
+class SiteRP{
+    static const int ll = 64;																					// The number of vertices on a side of the lattice
+private:
+    static const int size = ll*ll;																				// The number of vertices in the graph
+public:
     short pc[size];				// Creates the pebble count at each vertex.
     short occ[size];             // Says whether the site is occupied with a particle
     int numparts;           // the number of particles (not pebbles) present in the system
@@ -36,11 +41,11 @@ class Graph{
     vector<int> giantrigidcluster[size];    //giantrigidcluster is the graph for the giant rigid cluster
     stack<int> placesbeen;			// The list of places been while looking for a pebble
     ofstream myfile;																					// The file stream
+    short rcluster[size];
 private:
-    const int size = ll*ll;																				// The number of vertices in the graph
-    const EMPTY = -size-1;
+    const int EMPTY = -size-1;
 public:
-    Graph (int LL) : ll(LL){}
+    //SiteRP (int LL) : ll(LL){}
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -529,7 +534,7 @@ public:
     {
 
 
-        char mychar[] = "data1/cxxxtxxxx.txt";
+        char mychar[] = "data/cxxxtxxxx.txt";
         int start =sizeof(mychar)-13;
         cval = cval * 100;
         int intc = cval;
@@ -666,21 +671,25 @@ public:
                     }
                 }
                 // choose some densities for the rigid cluster
-                giantindex=rigidcluster();
-                giantsize=giantrclustersize(giantindex);
+                if (numparts % (ll/2) == 0) {
+                    giantindex = rigidcluster();
+                    giantsize = giantrclustersize(giantindex);
 
-                int span=spanningrcluster(giantindex);
-                log(span);
+                    int span = spanningrcluster(giantindex);
+                    log(span);
+                }
+                else
+                    log();
 
             }
         }
     }
 
-    void onetritrial2(int maxout,float c)
+    void onetritrial2(int max_out_time,float c)
     {
         int numattempts = 0;
+        int maxout = max_out_time*ll*ll;
         initemptytrigraph();
-        trialcount = 1;
 
         while(numattempts < maxout && numparts < ll*ll)
         {
@@ -698,7 +707,6 @@ public:
         {
             for(int mtc = 14; mtc<=numtrials; mtc++)
             {
-                trialcount++;
                 int numattempts = 0;
                 initemptytrigraph();
 
@@ -895,5 +903,35 @@ public:
         }
         return false;// After the DFS still no finding about the spanning cluster, then it is not spanning.
     }
-
 };
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// MAIN FUNCTION
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int main()
+{
+    clock_t t1, t2;													// Creates clock variables to track the runtime
+    t1 = clock();
+    srand(time(NULL));
+
+    float cfor = 0.0; // correlation constant
+    int trial = 1; // trial counting
+
+    SiteRP TriLattice;
+    TriLattice.setfilestream(cfor,trial);
+    TriLattice.onetritrial2(300000,cfor);
+
+    //SiteRP TriLattice();
+    //TriLattice.multictrial(ll*ll*100000,0.0,0.1,.2,20); //That's it!
+
+    t2 = clock();
+    float clocktime((float)t2 - (float)t1);
+    cout << "\n The total run time was " << clocktime / CLOCKS_PER_SEC << endl;
+    cin.ignore();
+    return 0;
+}

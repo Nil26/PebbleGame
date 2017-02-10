@@ -1922,7 +1922,7 @@ bool spanningrcluster(int giantindex_in)
 
 int main()
 {
-    //myfile.open("tridata2.txt");										// Opens a file to write to
+	//myfile.open("tridata2.txt");										// Opens a file to write to
 	//myfile << "test\n";
 
 	clock_t t1, t2;													// Creates clock variables to track the runtime
@@ -1930,13 +1930,13 @@ int main()
 	//unsigned seed = t1;
 	srand(time(NULL));
 
-    //multictrial(ll*ll*100000,0.0,0.1,.2,20); //That's it!
-    
-    float cfor = 0.0; // correlation constant
-    int trial = 1; // trial counting
+	//multictrial(ll*ll*100000,0.0,0.1,.2,20); //That's it!
+
+	float cfor = 0.0; // correlation constant
+	int trial = 1; // trial counting
 
 	setfilestream(cfor,trial);
-    onetritrial2(ll*ll*300000,cfor);
+	onetritrial2(ll*ll*300000,cfor);
 
 	t2 = clock();
 	float clocktime((float)t2 - (float)t1);
