@@ -12,12 +12,13 @@
 using namespace std;
 
 class Bond{
+public:
     pair<int, int> vertices; // the connected vertices
     int RigidIndex;         //  the rigid cluster index
-public:
     Bond (int x_input, int y_input)
     {
         vertices = make_pair(x_input,y_input);
+        RigidIndex = 0;
     }
     pair<int,int> vertex() const { return vertices;};
 };
@@ -59,7 +60,6 @@ public:
     void addedge(int i, int j)
     {
         thegraph[i].push_back(j);
-        edges.push_back(Bond(i,j));
     }
 
     // addredundant adds an edge between i and j in rgraph, the separate graph of redundant edges
@@ -513,6 +513,7 @@ public:
         {
             addedge(i, j);				// if we succeed, we add the edge from i to j and remove a pebble from i
             numbonds++;
+            edges.push_back(Bond(i,j));
             pc[i]--;
         }
         else
@@ -622,6 +623,7 @@ public:
     int initemptytrigraph()
     {
         numbonds = 0; // the number of bonds
+        edges.clear();
         numparts = 0; // the number of particles
         rbonds = 0;   // the number of redundant bonds
 
@@ -749,6 +751,10 @@ public:
         {
             return 1;			// otherwise, the edge is redundant(dependent)
         }
+    }
+
+    bool isbondrigid(Bond a, Bond b) //see if the two bonds a and b are rigid to each other
+    {
 
     }
 
@@ -759,40 +765,51 @@ public:
         int giantsize=2; //if there exists any bond, the smallest possible giant rigid cluster size is 2
         int giantindex_process=0; //the index for the giant rigid cluster (in this function)
 
-        for(int i=0; i<=size-1; i++)
-        {
-            if (rcluster[i]==1 && !thegraph[i].empty())
-            {
-                for (int index=thegraph[i].size()-1; index>=0; index--)
-                {
-                    if (rcluster[thegraph[i][index]]==1)
-                    { //the bond exists and not in some rigid clusters
+//        for(int i=0; i<=size-1; i++)
+//        {
+//            if (rcluster[i]==1 && !thegraph[i].empty())
+//            {
+//                for (int index=thegraph[i].size()-1; index>=0; index--)
+//                {
+//                    if (rcluster[thegraph[i][index]]==1)
+//                    { //the bond exists and not in some rigid clusters
+//
+//                        int rclustersize=2;//the size of this rigid cluster
+//                        rcnum++;
+//                        rcluster[i]=rcnum;
+//                        rcluster[thegraph[i][index]]=rcnum;
+//                        for (int t=0; t<=size-1; t++)
+//                        {
+//                            if (rcluster[t]==1)
+//                            {   //the test site which is not in some rigid clusters
+//                                if (isredundant(i, t) && isredundant(thegraph[i][index], t))
+//                                {   //see if t is in the rigid cluster of (i,thegraph[i][index])
+//                                    rcluster[t]=rcnum;
+//                                    rclustersize++;
+//                                }
+//                            }
+//                        }
+//
+//                        if (rclustersize>=giantsize) //update the size of the giant rigid cluster
+//                        {
+//                            giantsize=rclustersize;
+//                            giantindex_process=rcnum;
+//                        }
+//
+//                    }
+//                }
+//            }
+//        }
 
-                        int rclustersize=2;//the size of this rigid cluster
-                        rcnum++;
-                        rcluster[i]=rcnum;
-                        rcluster[thegraph[i][index]]=rcnum;
-                        for (int t=0; t<=size-1; t++)
-                        {
-                            if (rcluster[t]==1)
-                            {   //the test site which is not in some rigid clusters
-                                if (isredundant(i, t) && isredundant(thegraph[i][index], t))
-                                {   //see if t is in the rigid cluster of (i,thegraph[i][index])
-                                    rcluster[t]=rcnum;
-                                    rclustersize++;
-                                }
-                            }
-                        }
-
-                        if (rclustersize>=giantsize) //update the size of the giant rigid cluster
-                        {
-                            giantsize=rclustersize;
-                            giantindex_process=rcnum;
-                        }
-
+        for (vector<Bond>::iterator refBond = edges.begin(); refBond != edges.end(); ++refBond) {
+            if (refBond->RigidIndex == 0){
+                for (vector<Bond>::iterator testBond = edges.begin(); testBond != edges.end(); ++testBond){
+                    if (testBond->RigidIndex == 0){
+                        //the bond exists and not in some rigid clusters
                     }
                 }
             }
+
         }
 
         // pick out the giant rigid cluster and store it in the vector "giantrigidcluster" (!!! we need it to become a undirected adjacent list)
