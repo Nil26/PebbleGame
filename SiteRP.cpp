@@ -20,6 +20,10 @@ public:
         vertices = make_pair(x_input,y_input);
         RigidIndex = 0;
     }
+    void initBondRigidIndex ()
+    {
+        RigidIndex = 0;
+    }
     pair<int,int> vertex() const { return vertices;};
 };
 
@@ -34,7 +38,8 @@ public:
     int numbonds;					// The number of non-redundant bonds (original bonds and crossbraces) in the system
     int rbonds;						// The number of redundant bonds in the system
     float correlation;              // the correlation constant
-    int giantsize;                  // The size of the giant rigid cluster
+    int giantsize_site;                  // The size of the giant rigid cluster
+    int giantsize_bond;                  // The size of the giant rigid cluster
     int giantindex;                 // The index for the giant rigid cluster
     vector<int> thegraph[size];		// thegraph is the graph of all loaded edges
     vector<int> rgraph[size];		// rgraph is the graph of redundant bonds that don't take up any edges
@@ -42,7 +47,6 @@ public:
     vector<int> giantrigidcluster[size];    //giantrigidcluster is the graph for the giant rigid cluster
     stack<int> placesbeen;			// The list of places been while looking for a pebble
     ofstream myfile;																					// The file stream
-    short rcluster[size];
 private:
     const int EMPTY = -size-1;
 public:
@@ -556,7 +560,7 @@ public:
 
     void log(int span=-1)
     {
-        myfile  << ll << "\t" << correlation << "\t" << numparts << "\t" << numbonds << "\t" << rbonds << "\t" << giantindex << "\t" << giantsize <<"\t"<<span<< "\n";
+        myfile  << ll << "\t" << correlation << "\t" << numparts << "\t" << numbonds << "\t" << rbonds << "\t" << giantsize_bond << "\t" << giantsize_site <<"\t"<<span<< "\n";
     }
 
 // listedges lists the edges from site i
@@ -613,6 +617,14 @@ public:
 // initgiantrigidcluster() initializes the giantrigidcluster graph
     void initgiantrigidcluster()
     {
+        giantsize_site = 0;
+        giantsize_bond = 0;
+
+        // rewrite the RigidIndex for edges
+        for (vector<Bond>::iterator it = edges.begin(); it != edges.end(); ++it){
+            it->initBondRigidIndex();
+        }
+
         for (int bondindex = 0; bondindex < size; bondindex++)  // Clear the graphs of giantrigidcluster
         {
             giantrigidcluster[bondindex].clear();
@@ -674,10 +686,9 @@ public:
                 }
                 // choose some densities for the rigid cluster
                 if (numparts % (ll/2) == 0) {
-                    giantindex = rigidcluster();
-                    giantsize = giantrclustersize(giantindex);
+                    rigidcluster();
 
-                    int span = spanningrcluster(giantindex);
+                    int span = spanningrcluster();
                     log(span);
                 }
                 else
@@ -732,15 +743,6 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void initrcluster() // initialize the rcluster array to store the network
-    {
-        for(int i=0; i<=size-1; i++)
-        {
-            rcluster[i]=occ[i];
-        }
-        giantsize=0;
-    }
-
     bool isredundant(int i, int j)  //see if the test bond between (i,j) is redundant(dependent)
     {
         if (numbonds < 2 * size - 3 && loadsites(i, j))			// if there are at least four pebbles left, we try to load the sites
@@ -763,12 +765,13 @@ public:
         }
     }
 
-    int rigidcluster() // mark the rigid clusters and put into rcluster, and return the size of the giant rigid cluster.
+    void rigidcluster() // mark the rigid clusters and put into rcluster, and return the size of the giant rigid cluster.
     {
-        initrcluster();
-        int rcnum=1; //index of the rigid cluster
-        int giantsize_bond=1; //if there exists any bond, the smallest possible giant rigid cluster bond size is 1
-        int giantindex_process=0; //the index for the giant rigid cluster (in this function)
+        initgiantrigidcluster(); //empty the vector array first
+
+        int rcnum=0; //index of the rigid cluster
+        giantsize_bond=1; //if there exists any bond, the smallest possible giant rigid cluster bond size is 1
+        giantindex=0; //the index for the giant rigid cluster (in this function)
 
         for (vector<Bond>::iterator refBond = edges.begin(); refBond != edges.end(); ++refBond) {
             if (refBond->RigidIndex == 0){
@@ -786,42 +789,26 @@ public:
                 }
                 if (rclustersize_bond >= giantsize_bond){ //update the size of the giant rigid cluster
                     giantsize_bond = rclustersize_bond;
-                    giantindex_process = rcnum;
+                    giantindex = rcnum;
                 }
             }
         }
 
         // pick out the giant rigid cluster and store it in the vector "giantrigidcluster" (!!! we need it to become a undirected adjacent list)
-        initgiantrigidcluster(); //empty the vector array first
+
+        for (vector<Bond>::iterator it = edges.begin(); it != edges.end(); ++it){
+            if (it->RigidIndex == giantindex){
+                int site_I = it->vertices.first;
+                int site_J = it->vertices.second; //the two sites of the rigid bond
+                giantrigidcluster[site_I].push_back(site_J);
+                giantrigidcluster[site_J].push_back(site_I);
+            }
+        }
+
         for (int i=0; i<=size-1; i++) {
-            if (rcluster[i]==giantindex_process) {
-                for (int index=thegraph[i].size()-1; index>=0; index--) {
-                    if (rcluster[thegraph[i][index]]==giantindex_process) { // if the bond is connected to another site in the giant rigid cluster
-                        giantrigidcluster[i].push_back(thegraph[i][index]);
-                        giantrigidcluster[thegraph[i][index]].push_back(i);// The giantrigidcluster graph is a undirected graph
-                    }
-                }
+            if (!giantrigidcluster[i].empty()) {
+                giantsize_site++;
             }
-        }
-
-        return giantindex_process;
-    }
-
-    int giantrclustersize(int giantindex_in) //To find the size for the giant rigid cluster based on the index of that cluster
-    {
-        giantsize=0;    //Initialize the giantsize varialbe
-        int giantsize_return=0;
-        for (int i=0; i<=size-1; i++)
-        {
-            if (rcluster[i]==giantindex_in)
-            {
-                giantsize_return++;
-            }
-        }
-        if (giantindex_in==0 || giantindex_in==1) {
-            return 1;
-        } else {
-            return giantsize_return;
         }
     }
 
@@ -835,7 +822,7 @@ public:
 
 // We need to pick out the giant rigid cluster from the network and then determine if it is the spanning cluster.
 
-    bool spanningrcluster(int giantindex_in)
+    bool spanningrcluster()
     {
         // Do the DFS in the giant rigid cluster
         int beenthere[size]={};
@@ -843,8 +830,9 @@ public:
         stack<int> DFS_rcluster;
         // Find a starting point
         int v_start;
+
         for (v_start=0; v_start<=size-1; v_start++) {
-            if (rcluster[v_start]==giantindex_in) {
+            if (!giantrigidcluster[v_start].empty()) {
                 break;
             }
         }
