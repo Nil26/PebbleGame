@@ -1187,14 +1187,10 @@ void addtricluster(int site, float c)
 
     addtripart(site);
 
-
     for(int k = 1; k<=6; k++)
     {
             if(randprob()<c)
             {
-
-
-
                 newedgesite = choosedir(site,k);
 
                 //cout << "old site: " << site << " new site: " << newedgesite << endl;
@@ -1247,9 +1243,6 @@ void addtricluster2(int site, float c) // Has already added the rigidcluster fun
             log(span);
 
         }
-
-
-
     }
 
 }
@@ -1289,9 +1282,6 @@ void tritrials(int maxout,float c,int numtrials)
 
 void multictrial(int maxout,float c1,float c2, float dc,int numtrials)
 {
-
-
-
     for(globalc = c1; globalc <= c2; globalc += dc)
     {
             for(int mtc = 14; mtc<=numtrials; mtc++)
@@ -1315,8 +1305,6 @@ void multictrial(int maxout,float c1,float c2, float dc,int numtrials)
                         numattempts++;
 
                         addtricluster2(randsite0(),globalc);
-
-
                     }
             }
 
@@ -1350,9 +1338,6 @@ void onetritrial(float p)
 		<< p << " the number of floppy modes is\n" << 2 * ll*ll - numbonds << endl;
 
 }
-
-
-
 
 // multitrial adds random braces trial times and returns the mean number of floppy modes
 float multitrial(float p, int trial)
