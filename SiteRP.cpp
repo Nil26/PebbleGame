@@ -24,14 +24,13 @@ public:
     {
         RigidIndex = 0;
     }
-    pair<int,int> vertex() const { return vertices;};
+    pair<int,int> vertex() const { return vertices;}; // to get the vertices of the class Bond
 };
 
 class SiteRP {
     static const int ll = 64;                                                                                    // The number of vertices on a side of the lattice
 private:
-    static const int size = ll *
-                            ll;                                                                                // The number of vertices in the graph
+    static const int size = ll * ll;                                                                                // The number of vertices in the graph
 public:
     short pc[size];                // Creates the pebble count at each vertex.
     short occ[size];             // Says whether the site is occupied with a particle
@@ -42,12 +41,15 @@ public:
     int giantsize_site;                  // The size of the giant rigid cluster
     int giantsize_bond;                  // The size of the giant rigid cluster
     int giantindex;                 // The index for the giant rigid cluster
+    int SpanLastStatus;             // the last status of whether to have a spanning rigid cluster
+    vector<int> rcluster_site[size];     // Store all the information about rigid cluster decomposition in sites
     vector<int> thegraph[size];        // thegraph is the graph of all loaded edges
     vector<int> rgraph[size];        // rgraph is the graph of redundant bonds that don't take up any edges
     vector<Bond> edges;             //bonds only contains loaded edges
     vector<int> giantrigidcluster[size];    //giantrigidcluster is the graph for the giant rigid cluster
     stack<int> placesbeen;            // The list of places been while looking for a pebble
-    ofstream myfile;                                                                                    // The file stream
+    ofstream myfile;                  // The file stream to output the mainly wanted info
+    ofstream rclusterfile;            // the file stream to output the rigid cluster decomposition info
 private:
     const int EMPTY = -size - 1;
 public:
@@ -512,8 +514,23 @@ public:
         mychar[start + 1] = '0' + (intc % 100) / 10;
         mychar[start + 2] = '0' + (intc % 10);
 
+
+        char mychar_rcluster[] = "data/rcluster_cxxxtxxxx.txt";
+        int start_rcluster = sizeof(mychar_rcluster) - 13;
+        mychar_rcluster[start_rcluster + 4] = '0' + (tval % 10000) / 1000;
+        mychar_rcluster[start_rcluster + 5] = '0' + (tval % 1000) / 100;
+        mychar_rcluster[start_rcluster + 6] = '0' + (tval % 100) / 10;
+        mychar_rcluster[start_rcluster + 7] = '0' + (tval % 10);
+
+        mychar_rcluster[start_rcluster] = '0' + (intc % 1000) / 100;
+        mychar_rcluster[start_rcluster + 1] = '0' + (intc % 100) / 10;
+        mychar_rcluster[start_rcluster + 2] = '0' + (intc % 10);
+
         myfile.close();
         myfile.open(mychar);
+
+        rclusterfile.close();
+        rclusterfile.open(mychar_rcluster);
 
         //cout << mychar;
     }
@@ -592,6 +609,7 @@ public:
         edges.clear();
         numparts = 0; // the number of particles
         rbonds = 0;   // the number of redundant bonds
+        SpanLastStatus = 0; // the initial spanning status is NO
 
         for (int pcindex = 0; pcindex < size; pcindex++) // Just setting the pebble count to 2 everywhere.
         {                                               // and setting which sites are occupied
@@ -617,8 +635,7 @@ public:
         return numparts;
     }
 
-    void addtricluster2(int site,
-                        float c) // Has already added the rigidcluster function, as well as the spanning cluster
+    void addtricluster2(int site, float c) // Has already added the rigidcluster function, as well as the spanning cluster
     {
 
         if (occ[site] == 0) {
@@ -642,6 +659,14 @@ public:
 
                     int span = spanningrcluster();
                     log(span);
+
+                    // choose the critical position to get rigid cluster decomposition
+                    if (SpanLastStatus == 0 && span == 1){
+                        StoreRigidInfoOfSite();
+                    }
+
+                    // update the SpanLastStatus
+                    SpanLastStatus = span;
                 }
                 else
                     log();
@@ -712,7 +737,7 @@ public:
         }
     }
 
-    void rigidcluster() // mark the rigid clusters and put into rcluster, and return the size of the giant rigid cluster.
+    void rigidcluster() // mark the rigid clusters
     {
         initgiantrigidcluster(); //empty the vector array first
 
@@ -755,6 +780,51 @@ public:
         for (int i = 0; i <= size - 1; i++) {
             if (!giantrigidcluster[i].empty()) {
                 giantsize_site++;
+            }
+        }
+    }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// THE RIGID CLUSTER INFO (FOR CLUSTER STATISTICS INFO)
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // store the rigid cluster decomposition information in sites (initial rcluster_site before the running of this function)
+    void StoreRigidInfoOfSite(){
+        // clear the stored rigid cluster info, which is already not useful
+        for (int i = 0; i <= size - 1; ++i) {
+            rcluster_site[i].clear();
+        }
+
+        // store the rigid cluster info to rcluster_site
+        for (vector<Bond>::iterator it = edges.begin(); it != edges.end() ; ++it) {
+            int site_I = it->vertices.first;
+            int site_J = it->vertices.second; //the two sites of the rigid bond
+
+            // if rcluster_site has not stored the RigidIndex, store it
+            if (find(rcluster_site[site_I].begin(),rcluster_site[site_I].end(),it->RigidIndex) == rcluster_site[site_I].end()){
+                rcluster_site[site_I].push_back(it->RigidIndex);
+            }
+            if (find(rcluster_site[site_J].begin(),rcluster_site[site_J].end(),it->RigidIndex) == rcluster_site[site_J].end()){
+                rcluster_site[site_J].push_back(it->RigidIndex);
+            }
+            //push the rigid indices to the rcluster_site in order to store the info
+        }
+
+        // print out the rigid cluster decomposition info
+        for (int st = 0; st <= size - 1; ++st) {
+            if (rcluster_site[st].empty()){
+                rclusterfile << "0" << "\n";
+            }
+            else{
+                for (vector<int>::iterator it = rcluster_site[st].begin(); it != rcluster_site[st].end(); ++it) {
+                    rclusterfile << *it << "\t";
+                }
+                rclusterfile << "\n";
             }
         }
     }
@@ -830,7 +900,7 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// PLOT THE NETWORK
+// PLOT THE NETWORK CONFIGURATION WITHOUT ADDING RIGID CLUSTER INFORMATION
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -876,10 +946,14 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // correlation length exponent \nu
+// \nu is given from different critical point position to look at fluctuation
 
 // cluster-statistics exponent \tau
+// at the transition point, n_s(\phi_P) ~ s^{-\tau}, so to get \tau, need to statistics for cluster sizes at transition point
 
-// fractal dimension D
+// fractal dimension d_f: for mass scaling analysis, average mass for rigid spanning cluster, M ~ L^{d_f-2}
+// d_{BB}: for backbone dimension, average mass of stressed backbone, M' ~ L^{d_{BB}-2}
+// for site percolation, only one exponent for the fractal dimension, d_{BB} (actually d_{BB} and d_f are describing the same properties)
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -895,12 +969,12 @@ public:
         trial = 1; // trial counting
 
         setfilestream(cfor,trial);
-        onetritrial2(300000,cfor);
+        onetritrial2(ll*ll*100000000L,cfor);
     }
 
     void MultiTrialTest() //Generate multiple-times trial for triangular lattice (site RP)
     {
-        multictrial(ll*ll*100000,0.0,0.1,.2,20); //That's it!
+        multictrial(ll*ll*100000000L,0.0,0.1,.2,20); //That's it!
     }
 
     void PlotNetworkTest() //Generate network plot file
@@ -955,7 +1029,7 @@ int main()
     srand(time(NULL));
 
     SiteRP TriLattice;
-    TriLattice.PlotNetworkTest();
+    TriLattice.OneTrialTest(0.6,1);
 
     t2 = clock();
     float clocktime((float)t2 - (float)t1);
