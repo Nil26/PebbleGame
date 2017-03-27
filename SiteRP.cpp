@@ -965,8 +965,8 @@ public:
 
     void OneTrialTest(float cfor, int trial) //Generate one-time trial for triangular lattice (site RP)
     {
-        cfor = 0.0; // correlation constant
-        trial = 1; // trial counting
+        //cfor = 0.0; // correlation constant
+        //trial = 1; // trial counting
 
         setfilestream(cfor,trial);
         onetritrial2(ll*ll*100000000L,cfor);
