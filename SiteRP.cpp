@@ -501,7 +501,7 @@ public:
     void setfilestream(float cval, int tval) {
 
 
-        char mychar[] = "data/cxxxtxxxx.txt";
+        char mychar[] = "./data/cxxxtxxxx.txt";
         int start = sizeof(mychar) - 13;
         cval = cval * 100;
         int intc = cval;
@@ -515,7 +515,7 @@ public:
         mychar[start + 2] = '0' + (intc % 10);
 
 
-        char mychar_rcluster[] = "data/rcluster_cxxxtxxxx.txt";
+        char mychar_rcluster[] = "./data/rcluster_cxxxtxxxx.txt";
         int start_rcluster = sizeof(mychar_rcluster) - 13;
         mychar_rcluster[start_rcluster + 4] = '0' + (tval % 10000) / 1000;
         mychar_rcluster[start_rcluster + 5] = '0' + (tval % 1000) / 100;
@@ -675,9 +675,8 @@ public:
         }
     }
 
-    void onetritrial2(int max_out_time, float c) {
+    void onetritrial2(long long int maxout, float c) {
         int numattempts = 0;
-        int maxout = max_out_time * ll * ll;
         initemptytrigraph();
 
         while (numattempts < maxout && numparts < ll * ll) {
@@ -687,9 +686,10 @@ public:
         }
 
         myfile.close();
+        rclusterfile.close();
     }
 
-    void multictrial(int maxout, float c1, float c2, float dc, int numtrials) {
+    void multictrial(long long int maxout, float c1, float c2, float dc, int numtrials) {
         for (correlation = c1; correlation <= c2; correlation += dc) {
             for (int mtc = 14; mtc <= numtrials; mtc++) {
                 int numattempts = 0;
@@ -912,6 +912,7 @@ public:
             addtricluster2_withoutRIGID(randsite0(), c);
         }
         myfile.close();
+        rclusterfile.close();
     }
 
     void addtricluster2_withoutRIGID(int site, float c) // Has not added the rigidcluster function, as well as the spanning cluster
@@ -1026,10 +1027,12 @@ int main()
 {
     clock_t t1, t2;													// Creates clock variables to track the runtime
     t1 = clock();
-    srand(time(NULL));
+    //srand(time(NULL));
+    //srand(29023);
+    srand(41754);
 
     SiteRP TriLattice;
-    TriLattice.OneTrialTest(0.6,1);
+    TriLattice.OneTrialTest(0.0,1);
 
     t2 = clock();
     float clocktime((float)t2 - (float)t1);
