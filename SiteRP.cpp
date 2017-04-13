@@ -7,56 +7,7 @@
 #include <stack>
 #include <fstream>
 #include <math.h>				// Basic math functions
-#include <time.h>				// Get clock time, to measure total run time
-#include <iomanip>
-#include <cstdlib>
-#include <algorithm>
-
-using namespace std;
-
-class Bond{
-public:
-    pair<int, int> vertices; // the connected vertices
-    int RigidIndex;         //  the rigid cluster index
-    Bond (int x_input, int y_input)
-    {
-        vertices = make_pair(x_input,y_input);
-        RigidIndex = 0;
-    }
-    void initBondRigidIndex ()
-    {
-        RigidIndex = 0;
-    }
-    pair<int,int> vertex() const { return vertices;}; // to get the vertices of the class Bond
-};
-
-class SiteRP {
-    static const int ll = 64;                                                                                    // The number of vertices on a side of the lattice
-private:
-    static const int size = ll * ll;                                                                                // The number of vertices in the graph
-public:
-    short pc[size];                // Creates the pebble count at each vertex.
-    short occ[size];             // Says whether the site is occupied with a particle
-    int numparts;           // the number of particles (not pebbles) present in the system
-    int numbonds;                    // The number of non-redundant bonds (original bonds and crossbraces) in the system
-    int rbonds;                        // The number of redundant bonds in the system
-    float correlation;              // the correlation constant
-    int giantsize_site;                  // The size of the giant rigid cluster
-    int giantsize_bond;                  // The size of the giant rigid cluster
-    int giantindex;                 // The index for the giant rigid cluster
-    int SpanLastStatus;             // the last status of whether to have a spanning rigid cluster
-    vector<int> rcluster_site[size];     // Store all the information about rigid cluster decomposition in sites
-    vector<int> thegraph[size];        // thegraph is the graph of all loaded edges
-    vector<int> rgraph[size];        // rgraph is the graph of redundant bonds that don't take up any edges
-    vector<Bond> edges;             //bonds only contains loaded edges
-    vector<int> giantrigidcluster[size];    //giantrigidcluster is the graph for the giant rigid cluster
-    stack<int> placesbeen;            // The list of places been while looking for a pebble
-    ofstream myfile;                  // The file stream to output the mainly wanted info
-    ofstream rclusterfile;            // the file stream to output the rigid cluster decomposition info
-private:
-    const int EMPTY = -size - 1;
-public:
-    //SiteRP (int LL) : ll(LL){}
+#include "siteRP.h"
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,12 +18,12 @@ public:
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // addedge adds an edge pointing from vertex i to vertex j in thegraph
-    void addedge(int i, int j) {
+    void SiteRP::addedge(int i, int j) {
         thegraph[i].push_back(j);
     }
 
     // addredundant adds an edge between i and j in rgraph, the separate graph of redundant edges
-    void addredundant(int i, int j) {
+    void SiteRP::addredundant(int i, int j) {
         rgraph[i].push_back(j);
     }
 
@@ -80,19 +31,19 @@ public:
 // I call it "bad" because it looks through all of i's elements instead of
 // using which one might be open in a tree search.
 // This should return an error if there is no edge pointing from i to j.
-    int badremoveedge(int i, int j) {
+    int SiteRP::badremoveedge(int i, int j) {
         for (int k = 0; k < thegraph[i].size(); k++) {
             if (thegraph[i].at(k) == j) {
                 thegraph[i].erase(thegraph[i].begin() + k);
                 return 0;
             }
         }
-        cout << "I tried to remove an edge pointing from " << i << " to " << j << " but I couldn't find one.\n";
+        std::cout << "I tried to remove an edge pointing from " << i << " to " << j << " but I couldn't find one.\n";
         return 0;
     }
 
 // contains returns 1 if there is a non-redundant edge pointing from i to j (but doesn't check j to i) and 0 otherwise
-    bool contains(int i, int j) {
+    bool SiteRP::contains(int i, int j) {
         for (int k = 0; k < thegraph[i].size(); k++) {
             if (thegraph[i].at(k) == j) {
                 return 1;
@@ -103,7 +54,7 @@ public:
 
 
 // rcontains returns 1 if there is a redundant edge pointing from i to j (but doesn't check j to i) and 0 otherwise
-    bool rcontains(int i, int j) {
+    bool SiteRP::rcontains(int i, int j) {
         for (int k = 0; k < rgraph[i].size(); k++) {
             if (rgraph[i].at(k) == j) {
                 return 1;
@@ -117,7 +68,7 @@ public:
 
 // isempty returns 0 if there is any kind of redundant or nonredundant brace pointing in either direction between i and j, and 1 otherwise
 // Modification required: isempty only looks at one type of bond, not the six (or at least, three) kinds of the triangular lattice
-    bool isempty(int i, int j) {
+    bool SiteRP::isempty(int i, int j) {
         if (contains(i, j) || contains(j, i) || rcontains(i, j) || rcontains(j, i)) {
             return 0;
         }
@@ -126,7 +77,7 @@ public:
         }
     }
 
-    bool isempty(int i) {
+    bool SiteRP::isempty(int i) {
         return isempty(i, i + ll + 1);
     }
 
@@ -139,7 +90,7 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    int moveright(int site) {
+    int SiteRP::moveright(int site) {
         if (site % ll == ll - 1) {
             return site - ll + 1;
         }
@@ -148,7 +99,7 @@ public:
         }
     }
 
-    int moveleft(int site) {
+    int SiteRP::moveleft(int site) {
         if (site % ll == 0) {
             return site + ll - 1;
         }
@@ -157,7 +108,7 @@ public:
         }
     }
 
-    int moveup(int site) {
+    int SiteRP::moveup(int site) {
         if (site >= ll * ll - ll) {
             return site + ll - ll * ll;
         }
@@ -166,7 +117,7 @@ public:
         }
     }
 
-    int movedown(int site) {
+    int SiteRP::movedown(int site) {
         if (site <= ll - 1) {
             return site - ll + ll * ll;
         }
@@ -177,35 +128,35 @@ public:
 
 
 // moving to the right
-    int dir1(int site) {
+    int SiteRP::dir1(int site) {
         return moveright(site);
     }
 
 
 // moving up (geometrically, up and to the right)
-    int dir2(int site) {
+    int SiteRP::dir2(int site) {
         return moveup(site);
     }
 
 
 // moving up and to the left (the moves should commute)
-    int dir3(int site) {
+    int SiteRP::dir3(int site) {
         return moveleft(moveup(site));
     }
 
-    int dir4(int site) {
+    int SiteRP::dir4(int site) {
         return moveleft(site);
     }
 
-    int dir5(int site) {
+    int SiteRP::dir5(int site) {
         return movedown(site);
     }
 
-    int dir6(int site) {
+    int SiteRP::dir6(int site) {
         return moveright(movedown(site));
     }
 
-    int choosedir(int site, int d) {
+    int SiteRP::choosedir(int site, int d) {
         switch (d) {
             case 1:
                 return dir1(site);
@@ -232,13 +183,13 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // randprob() just returns a random number between zero and one.
-    float randprob() {
+    float SiteRP::randprob() {
         float f = rand();
         return f / RAND_MAX;
     }
 
 // randsite0 finds a random plaquette that may or may not be occupied
-    int randsite0() {
+    int SiteRP::randsite0() {
         return (rand() % size);
     }
 
@@ -255,7 +206,7 @@ public:
 // So if placesbeen is from 2 to 12 to 5
 // It should remove edges from 2 to 12 and from 12 to 5
 // and add edges from 5 to 12 and 12 to 2
-    void reversepath() {
+    void SiteRP::reversepath() {
         int starter = placesbeen.top();                // We start at the last place in the path, the site where we found a pebble
         pc[starter]--;                                // We remove a pebble from this site
 
@@ -281,12 +232,12 @@ public:
 // if findpebble finds a pebble, it should set placesbeen to a path from i to the site with the pebble
 // Otherwise, it should leave placesbeen blank.
 // It returns 1 if a pebble was found and 0 if it wasn't or if the path wasn't empty to start
-    bool findpebble(int i) {
+    bool SiteRP::findpebble(int i) {
         if (placesbeen.size() >
             0)                        // We shouldn't ever call findpebble unless our path has been cleared, or something didn't close like it should
         {
-            cout << "I tried to find a pebble, but when I started the path stack wasn't empty, it had size " <<
-            placesbeen.size() << endl;
+            std::cout << "I tried to find a pebble, but when I started the path stack wasn't empty, it had size " <<
+            placesbeen.size() << std::endl;
             return 0;
         }
         else {
@@ -299,16 +250,14 @@ public:
             int prosp;                            // prosp is a vertex connected to cl that we might prospectively move to
             //cout << "Current location is " << placesbeen.top() << endl;
 
-            while (placesbeen.size() >
-                   0)                                        // Until we are forced to retreat all the way back to the first vertex...
+            while (placesbeen.size() > 0)                                        // Until we are forced to retreat all the way back to the first vertex...
             {
                 cl = placesbeen.top();                                            // Our current location is the last place in the path
                 // cout << "From the top, our current location is " << cl << endl;
                 for (int index1 = 0;
                      index1 < thegraph[cl].size(); index1++) // for each place we can go from our current location...
                 {
-                    prosp = thegraph[cl].at(
-                            index1);                            // Our prospective location is one of the places we can go to from cl
+                    prosp = thegraph[cl].at(index1);                            // Our prospective location is one of the places we can go to from cl
                     //cout << "The prospective vertex we consider is " << prosp << endl;
                     if (beenthere[prosp] == 0)                                    // if we haven't been there before...
                     {
@@ -319,8 +268,7 @@ public:
                         //cout << "Current location after pushing: " << placesbeen.top() << endl;
 
 
-                        if (pc[placesbeen.top()] >
-                            0) { return 1; }                // If our new site has a pebble, quit looking for pebbles and say we found one
+                        if (pc[placesbeen.top()] > 0) { return 1; }                // If our new site has a pebble, quit looking for pebbles and say we found one
 
                         beenthere[prosp] = 1;                                    // Otherwise mark it as having been visited, but keep looking for a pebble
                         //cout << "Current location is, in the for loop " << placesbeen.top() << endl;
@@ -331,8 +279,7 @@ public:
                 }
 
 
-                if (cl == placesbeen.top() || placesbeen.size() ==
-                                              0) // If, after the for loop, the new top of the path is the same as the old one,
+                if (cl == placesbeen.top() || placesbeen.size() == 0) // If, after the for loop, the new top of the path is the same as the old one,
                 {                            // Then we didn't move anywhere, so we need to pop off the last vertex and retreat
                     placesbeen.pop();
                     /*
@@ -351,10 +298,10 @@ public:
 
 // When called with two arguments, findpebble skips over the second site to avoid infinitely swapping pebble
 // between the two sites the brace connects, by marking skip as a place that we've already been
-    bool findpebble(int i, int skip) {
+    bool SiteRP::findpebble(int i, int skip) {
         if (placesbeen.size() > 0) {
-            cout << "I tried to find a pebble, but when I started the path stack wasn't empty, it had size " <<
-            placesbeen.size() << endl;
+            std::cout << "I tried to find a pebble, but when I started the path stack wasn't empty, it had size " <<
+            placesbeen.size() << std::endl;
             return 0;
         }
         else {
@@ -402,8 +349,7 @@ public:
                         */
                     }
                 }
-                if (cl == placesbeen.top() || placesbeen.size() ==
-                                              0) // If, after the for loop, the new top of the path is the same as the old one,
+                if (cl == placesbeen.top() || placesbeen.size() == 0) // If, after the for loop, the new top of the path is the same as the old one,
                 {                            // Then we didn't move anywhere, so we need to pop off the last vertex and retreat
                     placesbeen.pop();
                     /*
@@ -422,7 +368,7 @@ public:
 
 
 // loadsite looks for pebbles and moves them onto i until i has two pebbles or it stops finding pebbles
-    bool loadsite(int i) {
+    bool SiteRP::loadsite(int i) {
         if (placesbeen.size() == 0) {
             while (pc[i] < 2 && findpebble(i)) // while the site is not loaded and you are finding pebbles...
                 // c++ documentation says && short circuits, so you shouldn't
@@ -432,8 +378,8 @@ public:
             }
         }
         else {
-            cout << "I tried to find a pebble, but when I started the path stack wasn't empty, it had size " <<
-            placesbeen.size() << endl;
+            std::cout << "I tried to find a pebble, but when I started the path stack wasn't empty, it had size " <<
+            placesbeen.size() << std::endl;
         }
 
         if (pc[i] == 2) { return 1; }        // return 1 if the site loaded successfully.
@@ -442,7 +388,7 @@ public:
 
 // loadsite with two arguments does the same thing, but won't try to take pebbles from skip to move onto i
 // Which is to keep the two sites from swapping the three pebbles between themselves endlessly
-    bool loadsite(int i, int skip) {
+    bool SiteRP::loadsite(int i, int skip) {
         if (placesbeen.size() == 0) {
             while (pc[i] < 2 && findpebble(i, skip)) // while the site is not loaded and you are finding pebbles...
                 // C++ documentation says && short-circuits, so this shouldn't even
@@ -452,14 +398,14 @@ public:
             }
         }
         else {
-            cout << "I tried to load site " << i << " but the placesbeen stack wasn't empty.\n";
+            std::cout << "I tried to load site " << i << " but the placesbeen stack wasn't empty.\n";
         }
         if (pc[i] == 2) { return 1; }        // return 1 if the site loaded successfully.
         else { return 0; }
     }
 
 // loadsites tries to move pebbles until there are two on both sites i and j
-    bool loadsites(int i, int j) {
+    bool SiteRP::loadsites(int i, int j) {
 
         while (pc[j] < 2 && findpebble(j)) {
             reversepath();
@@ -478,7 +424,7 @@ public:
     }
 
 // addbond tries to load the sites. If it succeeds, it adds an edge from i to j and takes a pebble from i. Otherwise, it adds a redundant edge
-    void addbond(int i, int j) {
+    void SiteRP::addbond(int i, int j) {
         if (numbonds < 2 * size - 3 &&
             loadsites(i, j))            // If there are at least four pebbles left, we try to load the sites
         {
@@ -501,7 +447,7 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void setfilestream(float cval, int tval) {
+    void SiteRP::setfilestream(float cval, int tval) {
 
 
         char mychar[] = "./data/cxxxtxxxx.txt";
@@ -538,24 +484,24 @@ public:
         //cout << mychar;
     }
 
-    void log(int span = -1) {
+    void SiteRP::log(int span) {
         myfile << ll << "\t" << correlation << "\t" << numparts << "\t" << numbonds << "\t" << rbonds << "\t" <<
         giantsize_bond << "\t" << giantsize_site << "\t" << span << "\n";
     }
 
 // listedges lists the edges from site i
-    void listedges(int i) {
-        cout << "\nvertex number " << i << " points towards the following vertices:\n";
+    void SiteRP::listedges(int i) {
+    std::cout << "\nvertex number " << i << " points towards the following vertices:\n";
 
         for (int index = 0; index < thegraph[i].size(); index++) {
-            cout << thegraph[i].at(index) << " ";
+            std::cout << thegraph[i].at(index) << " ";
         }
 
-        cout << endl;
+    std::cout << std::endl;
     }
 
 // listalledges lists all the edges from the sites
-    void listalledges() {
+    void SiteRP::listalledges() {
         for (int index = 0; index < size; index++) {
             listedges(index);
         }
@@ -591,12 +537,12 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // initgiantrigidcluster() initializes the giantrigidcluster graph
-    void initgiantrigidcluster() {
+    void SiteRP::initgiantrigidcluster() {
         giantsize_site = 0;
         giantsize_bond = 0;
 
         // rewrite the RigidIndex for edges
-        for (vector<Bond>::iterator it = edges.begin(); it != edges.end(); ++it) {
+        for (std::vector<Bond>::iterator it = edges.begin(); it != edges.end(); ++it) {
             it->initBondRigidIndex();
         }
 
@@ -607,7 +553,7 @@ public:
     }
 
 // initemptytrigraph() updates numbonds, rbonds, thegraph, rgraph, placesbeen to a triangular graph with no particles or bonds
-    int initemptytrigraph() {
+    int SiteRP::initemptytrigraph() {
         numbonds = 0; // the number of bonds
         edges.clear();
         numparts = 0; // the number of particles
@@ -638,7 +584,7 @@ public:
         return numparts;
     }
 
-    void addtricluster2(int site, float c) // Has already added the rigidcluster function, as well as the spanning cluster
+    void SiteRP::addtricluster2(int site, float c) // Has already added the rigidcluster function, as well as the spanning cluster
     {
 
         if (occ[site] == 0) {
@@ -678,7 +624,7 @@ public:
         }
     }
 
-    void onetritrial2(long long int maxout, float c) {
+    void SiteRP::onetritrial2(long long int maxout, float c) {
         int numattempts = 0;
         initemptytrigraph();
 
@@ -692,7 +638,7 @@ public:
         rclusterfile.close();
     }
 
-    void multictrial(long long int maxout, float c1, float c2, float dc, int numtrials) {
+    void SiteRP::multictrial(long long int maxout, float c1, float c2, float dc, int numtrials) {
         for (correlation = c1; correlation <= c2; correlation += dc) {
             for (int mtc = 14; mtc <= numtrials; mtc++) {
                 int numattempts = 0;
@@ -717,7 +663,7 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    bool isredundant(int i, int j)  //see if the test bond between (i,j) is redundant(dependent)
+    bool SiteRP::isredundant(int i, int j)  //see if the test bond between (i,j) is redundant(dependent)
     {
         if (numbonds < 2 * size - 3 &&
             loadsites(i, j))            // if there are at least four pebbles left, we try to load the sites
@@ -729,7 +675,7 @@ public:
         }
     }
 
-    bool isbondrigid(Bond &a, Bond &b) //see if the two bonds a and b are rigid to each other
+    bool SiteRP::isbondrigid(Bond &a, Bond &b) //see if the two bonds a and b are rigid to each other
     {
         if (isredundant(a.vertices.first, b.vertices.first) && isredundant(a.vertices.first, b.vertices.second) &&
             isredundant(a.vertices.second, b.vertices.first) && isredundant(a.vertices.second, b.vertices.second)) {
@@ -740,7 +686,7 @@ public:
         }
     }
 
-    void rigidcluster() // mark the rigid clusters
+    void SiteRP::rigidcluster() // mark the rigid clusters
     {
         initgiantrigidcluster(); //empty the vector array first
 
@@ -748,12 +694,12 @@ public:
         giantsize_bond = 1; //if there exists any bond, the smallest possible giant rigid cluster bond size is 1
         giantindex = 0; //the index for the giant rigid cluster (in this function)
 
-        for (vector<Bond>::iterator refBond = edges.begin(); refBond != edges.end(); ++refBond) {
+        for (std::vector<Bond>::iterator refBond = edges.begin(); refBond != edges.end(); ++refBond) {
             if (refBond->RigidIndex == 0) {
                 int rclustersize_bond = 1;//the bond size of this rigid cluster
                 rcnum++;
                 refBond->RigidIndex = rcnum;
-                for (vector<Bond>::iterator testBond = edges.begin(); testBond != edges.end(); ++testBond) {
+                for (std::vector<Bond>::iterator testBond = edges.begin(); testBond != edges.end(); ++testBond) {
                     if (testBond->RigidIndex == 0) {
                         //the test and ref bonds are not in some rigid clusters
                         if (isbondrigid(*refBond, *testBond) == true) { //if test bond is rigid with respect to refbond
@@ -771,7 +717,7 @@ public:
 
         // pick out the giant rigid cluster and store it in the vector "giantrigidcluster" (!!! we need it to become a undirected adjacent list)
 
-        for (vector<Bond>::iterator it = edges.begin(); it != edges.end(); ++it) {
+        for (std::vector<Bond>::iterator it = edges.begin(); it != edges.end(); ++it) {
             if (it->RigidIndex == giantindex) {
                 int site_I = it->vertices.first;
                 int site_J = it->vertices.second; //the two sites of the rigid bond
@@ -797,14 +743,14 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // store the rigid cluster decomposition information in sites (initial rcluster_site before the running of this function)
-    void StoreRigidInfoOfSite(){
+    void SiteRP::StoreRigidInfoOfSite(){
         // clear the stored rigid cluster info, which is already not useful
         for (int i = 0; i <= size - 1; ++i) {
             rcluster_site[i].clear();
         }
 
         // store the rigid cluster info to rcluster_site
-        for (vector<Bond>::iterator it = edges.begin(); it != edges.end() ; ++it) {
+        for (std::vector<Bond>::iterator it = edges.begin(); it != edges.end() ; ++it) {
             int site_I = it->vertices.first;
             int site_J = it->vertices.second; //the two sites of the rigid bond
 
@@ -824,7 +770,7 @@ public:
                 rclusterfile << "0" << "\n";
             }
             else{
-                for (vector<int>::iterator it = rcluster_site[st].begin(); it != rcluster_site[st].end(); ++it) {
+                for (std::vector<int>::iterator it = rcluster_site[st].begin(); it != rcluster_site[st].end(); ++it) {
                     rclusterfile << *it << "\t";
                 }
                 rclusterfile << "\n";
@@ -842,11 +788,11 @@ public:
 
 // We need to pick out the giant rigid cluster from the network and then determine if it is the spanning cluster.
 
-    bool spanningrcluster() {
+    bool SiteRP::spanningrcluster() {
         // Do the DFS in the giant rigid cluster
         int beenthere[size] = {};
         std::fill_n(beenthere, size, EMPTY);
-        stack<int> DFS_rcluster;
+        std::stack<int> DFS_rcluster;
         // Find a starting point
         int v_start;
 
@@ -881,7 +827,7 @@ public:
                         beenthere[prosp] = beenthere[cl] - 1;
                     }
                     else {
-                        cout << "Whoooops, sth goes wrong." << endl;
+                        std::cout << "Whoooops, sth goes wrong." << std::endl;
                     }
 
                     break;
@@ -908,7 +854,7 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void onetritrial2_plot(float p, float c) {
+    void SiteRP::onetritrial2_plot(float p, float c) {
         initemptytrigraph();
         //while(numparts <= p*ll*ll)
         while (numparts <= p * ll * ll) {
@@ -918,7 +864,7 @@ public:
         rclusterfile.close();
     }
 
-    void addtricluster2_withoutRIGID(int site, float c) // Has not added the rigidcluster function, as well as the spanning cluster
+    void SiteRP::addtricluster2_withoutRIGID(int site, float c) // Has not added the rigidcluster function, as well as the spanning cluster
     {
 
         if (occ[site] == 0) {
@@ -967,7 +913,7 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void OneTrialTest(float cfor, int trial) //Generate one-time trial for triangular lattice (site RP)
+    void SiteRP::OneTrialTest(float cfor, int trial) //Generate one-time trial for triangular lattice (site RP)
     {
         //cfor = 0.0; // correlation constant
         //trial = 1; // trial counting
@@ -976,19 +922,19 @@ public:
         onetritrial2(ll*ll*100000000L,cfor);
     }
 
-    void MultiTrialTest() //Generate multiple-times trial for triangular lattice (site RP)
+    void SiteRP::MultiTrialTest() //Generate multiple-times trial for triangular lattice (site RP)
     {
         multictrial(ll*ll*100000000L,0.0,0.1,.2,20); //That's it!
     }
 
-    void PlotNetworkTest() //Generate network plot file
+    void SiteRP::PlotNetworkTest() //Generate network plot file
     {
         float cfor;
         float p;
-        cout<<"Type in the number for constant c: \n";
-        cin>>cfor;
-        cout<<"Type in network density p: \n";
-        cin>>p;
+        std::cout<<"Type in the number for constant c: \n";
+        std::cin>>cfor;
+        std::cout<<"Type in network density p: \n";
+        std::cin>>p;
 
 
         onetritrial2_plot(p,cfor);
@@ -996,9 +942,9 @@ public:
 
         int span = spanningrcluster();
 
-        cout<<"The size of the giant rigid cluster is "<< giantsize_site <<" with the spanning status in "<<span<<"\n";
+        std::cout<<"The size of the giant rigid cluster is "<< giantsize_site <<" with the spanning status in "<<span<<"\n";
 
-        ofstream outfile;
+        std::ofstream outfile;
         outfile.open("rclusterout.txt");
         for(int i=0; i < size; i++)
         {
@@ -1015,36 +961,3 @@ public:
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-};
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// MAIN FUNCTION
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-int main(int argc, char* argv[])
-{
-    if (argc < 4) { // We expect 3 arguments: the program name, the source path and the destination path
-        std::cerr << "Usage: " << argv[0] << " <CORRELATION> <TRIAL-COUNTING> <RANDOMSEED>" << std::endl;
-        return 1;
-    }    
-
-    clock_t t1, t2;													// Creates clock variables to track the runtime
-    t1 = clock();
-    srand(atoi(argv[3]));
-
-    float cfor = atof(argv[1]);
-    int trial = atoi(argv[2]);
-
-    SiteRP TriLattice;
-    TriLattice.OneTrialTest(cfor,trial);
-
-    t2 = clock();
-    float clocktime((float)t2 - (float)t1);
-    cout << "\n The total run time was " << clocktime / CLOCKS_PER_SEC << endl;
-    return 0;
-}
