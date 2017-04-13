@@ -31,8 +31,8 @@ public:
 };
 
 class SiteRP {
+    static const int ll = 64;                                                                                    // The number of vertices on a side of the lattice
 private:
-    static const int ll = 32;                                                                                    // The number of vertices on a side of the lattice
     static const int size = ll * ll;                                                                                // The number of vertices in the graph
 public:
     short pc[size];                // Creates the pebble count at each vertex.
@@ -299,14 +299,16 @@ public:
             int prosp;                            // prosp is a vertex connected to cl that we might prospectively move to
             //cout << "Current location is " << placesbeen.top() << endl;
 
-            while (placesbeen.size() > 0)                                        // Until we are forced to retreat all the way back to the first vertex...
+            while (placesbeen.size() >
+                   0)                                        // Until we are forced to retreat all the way back to the first vertex...
             {
                 cl = placesbeen.top();                                            // Our current location is the last place in the path
                 // cout << "From the top, our current location is " << cl << endl;
                 for (int index1 = 0;
                      index1 < thegraph[cl].size(); index1++) // for each place we can go from our current location...
                 {
-                    prosp = thegraph[cl].at(index1);                            // Our prospective location is one of the places we can go to from cl
+                    prosp = thegraph[cl].at(
+                            index1);                            // Our prospective location is one of the places we can go to from cl
                     //cout << "The prospective vertex we consider is " << prosp << endl;
                     if (beenthere[prosp] == 0)                                    // if we haven't been there before...
                     {
@@ -317,7 +319,8 @@ public:
                         //cout << "Current location after pushing: " << placesbeen.top() << endl;
 
 
-                        if (pc[placesbeen.top()] > 0) { return 1; }                // If our new site has a pebble, quit looking for pebbles and say we found one
+                        if (pc[placesbeen.top()] >
+                            0) { return 1; }                // If our new site has a pebble, quit looking for pebbles and say we found one
 
                         beenthere[prosp] = 1;                                    // Otherwise mark it as having been visited, but keep looking for a pebble
                         //cout << "Current location is, in the for loop " << placesbeen.top() << endl;
@@ -328,7 +331,8 @@ public:
                 }
 
 
-                if (cl == placesbeen.top() || placesbeen.size() == 0) // If, after the for loop, the new top of the path is the same as the old one,
+                if (cl == placesbeen.top() || placesbeen.size() ==
+                                              0) // If, after the for loop, the new top of the path is the same as the old one,
                 {                            // Then we didn't move anywhere, so we need to pop off the last vertex and retreat
                     placesbeen.pop();
                     /*
@@ -844,9 +848,9 @@ public:
         std::fill_n(beenthere, size, EMPTY);
         stack<int> DFS_rcluster;
         // Find a starting point
-        int v_start = 0;
+        int v_start;
 
-        for (v_start = 0; v_start < size-1; ++v_start) { // v_start < size-1 INSTEAD OF v_start <= size-1
+        for (v_start = 0; v_start < size - 1; v_start++) {
             if (!giantrigidcluster[v_start].empty()) {
                 break;
             }
@@ -866,6 +870,7 @@ public:
                     DFS_rcluster.push(prosp);
                     //Do sth here
                     //beenthere[prosp]=1;
+
 
                     //Get the x-displacement for prosp from the x-displacement for cl (x_prosp=x_cl +1 OR +0 OR -1)
                     if (prosp == choosedir(cl, 2) || prosp == choosedir(cl, 5)) {
@@ -1021,15 +1026,22 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int main()
+int main(int argc, char* argv[])
 {
+    if (argc < 4) { // We expect 3 arguments: the program name, the source path and the destination path
+        std::cerr << "Usage: " << argv[0] << " <CORRELATION> <TRIAL-COUNTING> <RANDOMSEED>" << std::endl;
+        return 1;
+    }    
+
     clock_t t1, t2;													// Creates clock variables to track the runtime
     t1 = clock();
-    //srand(time(NULL));
-    srand(37414);
+    srand(atoi(argv[3]));
+
+    float cfor = atof(argv[1]);
+    int trial = atoi(argv[2]);
 
     SiteRP TriLattice;
-    TriLattice.OneTrialTest(0.0,1);
+    TriLattice.OneTrialTest(cfor,trial);
 
     t2 = clock();
     float clocktime((float)t2 - (float)t1);
