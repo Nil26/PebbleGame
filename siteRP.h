@@ -10,6 +10,7 @@
 #include <iostream>
 #include <fstream>
 #include "bond.h"
+#include "site.h"
 
 class SiteRP {
     static const int ll = 32;                                                                                    // The number of vertices on a side of the lattice
@@ -18,6 +19,7 @@ private:
 public:
     short pc[size];                // Creates the pebble count at each vertex.
     short occ[size];             // Says whether the site is occupied with a particle
+
     int numparts;           // the number of particles (not pebbles) present in the system
     int numbonds;                    // The number of non-redundant bonds (original bonds and crossbraces) in the system
     int rbonds;                        // The number of redundant bonds in the system
@@ -26,6 +28,7 @@ public:
     int giantsize_bond;                  // The size of the giant rigid cluster
     int giantindex;                 // The index for the giant rigid cluster
     int SpanLastStatus;             // the last status of whether to have a spanning rigid cluster
+
     std::vector<int> rcluster_site[size];     // Store all the information about rigid cluster decomposition in sites
     std::vector<int> thegraph[size];        // thegraph is the graph of all loaded edges
     std::vector<int> rgraph[size];        // rgraph is the graph of redundant bonds that don't take up any edges
@@ -280,6 +283,7 @@ public:
     void OneTrialTest(float cfor, int trial); //Generate one-time trial for triangular lattice (site RP)
     void MultiTrialTest(); //Generate multiple-times trial for triangular lattice (site RP)
     void PlotNetworkTest(); //Generate network plot file
+    void ContinousNetworkRPTest();
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

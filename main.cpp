@@ -2,6 +2,7 @@
 #include <time.h>				// Get clock time, to measure total run time
 #include <iomanip>
 #include "bond.h"
+#include "site.h"
 #include "siteRP.h"
 
 int main(int argc, char* argv[])
