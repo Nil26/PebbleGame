@@ -233,8 +233,7 @@
 // Otherwise, it should leave placesbeen blank.
 // It returns 1 if a pebble was found and 0 if it wasn't or if the path wasn't empty to start
     bool SiteRP::findpebble(int i) {
-        if (placesbeen.size() >
-            0)                        // We shouldn't ever call findpebble unless our path has been cleared, or something didn't close like it should
+        if (placesbeen.size() > 0)                        // We shouldn't ever call findpebble unless our path has been cleared, or something didn't close like it should
         {
             std::cout << "I tried to find a pebble, but when I started the path stack wasn't empty, it had size " <<
             placesbeen.size() << std::endl;
@@ -411,8 +410,7 @@
             reversepath();
         }
 
-        while (pc[i] < 2 &&
-               findpebble(i, j))    // while the first site is not loaded and you are finding pebbles skipping
+        while (pc[i] < 2 && findpebble(i, j))    // while the first site is not loaded and you are finding pebbles skipping
         {                                        // second site, load the first site, then load the second.
             reversepath();
             while (pc[j] < 2 && findpebble(j)) {
@@ -954,9 +952,6 @@
         outfile.close();
     }
 
-    void SiteRP::ContinousNetworkRPTest() {
-
-    }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
