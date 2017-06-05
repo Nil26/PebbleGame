@@ -15,8 +15,8 @@
 #include "site.h"
 
 class SiteRP_cont {
-    static const int size = 50000; // The number of vertices in the graph
-    std::string FileName = "cfgT005d04N50000";
+    static const int size = 62500; // The number of vertices in the graph
+    std::string FileName = "cfgT005d04N62500B0";
     float BoxLength;
 public:
     short pc[size];                // Creates the pebble count at each vertex.
@@ -201,6 +201,8 @@ public:
     float distance(site &a, site &b);
 
     void BuildNetwork(); //build the network with site information
+    
+    void StudyArtificialNetwork();
 
     void RigidAtomWriteBack();
 

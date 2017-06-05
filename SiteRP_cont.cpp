@@ -6,9 +6,10 @@
 // Created by Zeb & Shang.
 //
 
-#include "siteRP_cont.h"
+#include "SiteRP_cont.h"
 #include <boost/tokenizer.hpp>
 #include <boost/foreach.hpp>
+#include <sstream>
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,7 +98,7 @@ void SiteRP_cont::reversepath() {
 
     placesbeen.pop();                            // We remove this site from our path, but it is still stored in starter
 
-    int ender;
+    int ender = 0;
 
     while (placesbeen.size() > 0)                    // While there are still sites in the path...
     {
@@ -604,7 +605,8 @@ bool SiteRP_cont::spanningrcluster() {
             else //Existing marked displacement can be compared to current place to see if the spanning cluster exists.
             {
                 //std::cout << "The distance for these two atoms in the same cluster: " << fabs(beenthere[cl] - beenthere[prosp]) << std::endl;
-                if (fabs(fabs(beenthere[cl] - beenthere[prosp]) - BoxLength) < 10e-1) {
+                std::cout << "!!!The distance for these two atoms in the same cluster: " << fabs(beenthere[cl] - beenthere[prosp]) << std::endl;
+                if (fabs(fabs(beenthere[cl] - beenthere[prosp]) - BoxLength) < 1.3) {
                     std::cout << "The distance for these two atoms in the same cluster: " << fabs(beenthere[cl] - beenthere[prosp]) << std::endl;
                     return true;
                 }
@@ -628,14 +630,48 @@ bool SiteRP_cont::spanningrcluster() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+// Do the periodic boundary condition for particle b
 float SiteRP_cont::distance(site &a, site &b) {
-    return sqrt( pow(a.XCoordinate - b.XCoordinate,2 ) + pow(a.YCoordinate - b.YCoordinate,2 ) );
+    float dis1 = sqrt( pow(a.XCoordinate - b.XCoordinate,2 ) + pow(a.YCoordinate - b.YCoordinate,2 ) );
+    float dist = dis1;
+    float dis2 = sqrt( pow(a.XCoordinate- b.XCoordinate - BoxLength,2 ) + pow(a.YCoordinate - b.YCoordinate,2 ) );
+    if (dis2 <= dist) {
+        dist = dis2;
+    }
+    float dis3 = sqrt( pow(a.XCoordinate - b.XCoordinate,2 ) + pow(a.YCoordinate - b.YCoordinate - BoxLength,2 ) );
+    if (dis3 <= dist) {
+        dist = dis3;
+    }
+    float dis4 = sqrt( pow(a.XCoordinate - b.XCoordinate + BoxLength,2 ) + pow(a.YCoordinate - b.YCoordinate,2 ) );
+    if (dis4 <= dist) {
+        dist = dis4;
+    }
+    float dis5 = sqrt( pow(a.XCoordinate - b.XCoordinate,2 ) + pow(a.YCoordinate - b.YCoordinate + BoxLength,2 ) );
+    if (dis5 <= dist) {
+        dist = dis5;
+    }
+    float dis6 = sqrt( pow(a.XCoordinate - b.XCoordinate - BoxLength,2 ) + pow(a.YCoordinate - b.YCoordinate - BoxLength,2 ) );
+    if (dis6 <= dist) {
+        dist = dis6;
+    }
+    float dis7 = sqrt( pow(a.XCoordinate - b.XCoordinate - BoxLength,2 ) + pow(a.YCoordinate - b.YCoordinate + BoxLength,2 ) );
+    if (dis7 <= dist) {
+        dist = dis7;
+    }
+    float dis8 = sqrt( pow(a.XCoordinate - b.XCoordinate + BoxLength,2 ) + pow(a.YCoordinate - b.YCoordinate - BoxLength,2 ) );
+    if (dis8 <= dist) {
+        dist = dis8;
+    }
+    float dis9 = sqrt( pow(a.XCoordinate - b.XCoordinate + BoxLength,2 ) + pow(a.YCoordinate - b.YCoordinate + BoxLength,2 ) );
+    if (dis9 <= dist) {
+        dist = dis9;
+    }
+    return dist;
 };
 
 
 void SiteRP_cont::BuildNetwork() // Has already added the rigidcluster function, as well as the spanning cluster
 {
-
     initemptytrigraph();
 
     int SiteNum = vertices.size();
@@ -666,10 +702,28 @@ void SiteRP_cont::BuildNetwork() // Has already added the rigidcluster function,
 
 }
 
+void SiteRP_cont::StudyArtificialNetwork()
+{
+    std::string mychar = "Data_Detect.txt";
+    std::string mychar_rcluster = "Data_Detect_rcluster.txt";
+    
+    myfile.close();
+    myfile.open(mychar);
+    
+    rclusterfile.close();
+    rclusterfile.open(mychar_rcluster);
+    
+    rigidcluster();
+    
+    int span = spanningrcluster();
+    log();
+    
+    StoreRigidInfoOfSite();
+    
+}
+
 
 void SiteRP_cont::ReadVerticeInfoFromCSV() {
-    
-    std::vector<std::string> result;
     
     std::string ReadFileSite = "./MCdata/SitePos.csv";
     std::string ReadFileBond = "./MCdata/Bonds.csv";
@@ -677,14 +731,66 @@ void SiteRP_cont::ReadVerticeInfoFromCSV() {
     std::ifstream InputDataFileSite(ReadFileSite);
     std::ifstream InputDataFileBond(ReadFileBond);
     
+    std::string line;
     std::string cell;
-    int i = 0;
-    while (std::getline(InputDataFileSite, cell, ',')) {
-        result.push_back(cell);
-        i++;
-        std::cout << cell << std::endl;
-        std::cout << i << std::endl;
+    int AtomIndex = 0;
+    while (std::getline(InputDataFileSite, line)) {
+        std::stringstream linestream(line);
+        double AtomXCoord = 0.0;
+        double AtomYCoord = 0.0;
+        ++AtomIndex;
+        int flag = 0;
+        while (std::getline(linestream, cell, ',')) {
+            flag++;
+            switch (flag) {
+                case 1:
+                    AtomXCoord = std::stod(cell);
+                    break;
+                    
+                case 2:
+                    AtomYCoord = std::stod(cell);
+                    break;
+            }
+        }
+        site Newsite(AtomXCoord,AtomYCoord,AtomIndex);
+        vertices.push_back(Newsite);
     }
+    
+    // then build the network with the bond information
+    
+    initemptytrigraph();
+    
+    int SiteNum = vertices.size();
+    numparts = SiteNum;
+    
+    std::string lineBond;
+    std::string cellBond;
+    while (std::getline(InputDataFileBond, lineBond)) {
+        std::stringstream linestreamBond(lineBond);
+        int IAtom = 0;
+        int JAtom = 0;
+        int flagBond = 0;
+        while (std::getline(linestreamBond, cellBond, ',')) {
+            flagBond++;
+            switch (flagBond) {
+                case 1:
+                    IAtom = std::stoi(cellBond)-1;
+                    break;
+                    
+                case 2:
+                    JAtom = std::stoi(cellBond)-1;
+                    break;
+            }
+        }
+        if (isempty(IAtom, JAtom) && IAtom != JAtom) {
+            addbond(IAtom, JAtom);
+            
+            undirectedgraph[IAtom].push_back(JAtom);
+            undirectedgraph[JAtom].push_back(IAtom);
+        }
+    }
+    InputDataFileSite.close();
+    InputDataFileBond.close();
     
 }
 
@@ -725,9 +831,9 @@ void SiteRP_cont::ReadVerticeInfo() {
             boost::char_separator<char> sep(" ");
             boost::tokenizer<boost::char_separator<char>> tokens(line, sep);
             int flag = 0;
-            int AtomIndex;
-            double AtomXCoord;
-            double AtomYCoord;
+            int AtomIndex = 0;
+            double AtomXCoord = 0.0;
+            double AtomYCoord = 0.0;
             BOOST_FOREACH (const auto& t, tokens) {
                 ++flag;
                 switch (flag){
@@ -746,6 +852,7 @@ void SiteRP_cont::ReadVerticeInfo() {
 }
 
 void SiteRP_cont::RigidAtomWriteBack() {
+    
     std::string ReadFile = "./MCdata/";
     ReadFile.append(FileName);
     ReadFile.append(".data");
