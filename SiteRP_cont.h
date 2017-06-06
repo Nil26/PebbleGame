@@ -16,7 +16,7 @@
 
 class SiteRP_cont {
     static const int size = 62500; // The number of vertices in the graph
-    std::string FileName = "cfgT005d04N62500B0";
+    std::string FileName = "cfgT005d04N62500";
     float BoxLength;
 public:
     short pc[size];                // Creates the pebble count at each vertex.

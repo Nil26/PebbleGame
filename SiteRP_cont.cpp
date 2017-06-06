@@ -121,12 +121,14 @@ void SiteRP_cont::reversepath() {
 bool SiteRP_cont::findpebble(int i) {
     if (placesbeen.size() > 0)                        // We shouldn't ever call findpebble unless our path has been cleared, or something didn't close like it should
     {
-        std::cout << "I tried to find a pebble, but when I started the path stack wasn't empty, it had size " <<
-                  placesbeen.size() << std::endl;
+        std::cout << "I tried to find a pebble, but when I started the path stack wasn't empty, it had size " << placesbeen.size() << std::endl;
         return 0;
     }
     else {
-        bool beenthere[size] = {}; // We create an array to say whether we've been to these sites before (or should we create a global array and just set it to zero here?)
+        bool *beenthere = new bool[size]; // We create an array to say whether we've been to these sites before (or should we create a global array and just set it to zero here?)
+        for (int ii = 0; ii < size; ii++)
+            beenthere[ii] = false;
+        
         beenthere[i] = 1;                    // which we haven't, to start, except for our starting site (and any skip sites)
         placesbeen.push(i);                    // start our path at the starting site
         // cout << "Current location: " << placesbeen.top() << endl;
@@ -135,26 +137,28 @@ bool SiteRP_cont::findpebble(int i) {
         int prosp;                            // prosp is a vertex connected to cl that we might prospectively move to
         //cout << "Current location is " << placesbeen.top() << endl;
 
-        while (placesbeen.size() > 0)                                        // Until we are forced to retreat all the way back to the first vertex...
+        while (placesbeen.size() > 0)        // Until we are forced to retreat all the way back to the first vertex...
         {
-            cl = placesbeen.top();                                            // Our current location is the last place in the path
+            cl = placesbeen.top();         // Our current location is the last place in the path
             // cout << "From the top, our current location is " << cl << endl;
             for (int index1 = 0; index1 < thegraph[cl].size(); index1++) // for each place we can go from our current location...
             {
-                prosp = thegraph[cl].at(index1);                            // Our prospective location is one of the places we can go to from cl
+                prosp = thegraph[cl].at(index1);         // Our prospective location is one of the places we can go to from cl
                 //cout << "The prospective vertex we consider is " << prosp << endl;
-                if (beenthere[prosp] == 0)                                    // if we haven't been there before...
+                if (beenthere[prosp] == 0)          // if we haven't been there before...
                 {
                     // cl = prosp; // move our current location to there
                     //cout << "We are moving to " << prosp << endl;
 
-                    placesbeen.push(prosp);                                    // Then we add it to the path
+                    placesbeen.push(prosp);         // Then we add it to the path
                     //cout << "Current location after pushing: " << placesbeen.top() << endl;
 
 
-                    if (pc[placesbeen.top()] > 0) { return 1; }                // If our new site has a pebble, quit looking for pebbles and say we found one
+                    if (pc[placesbeen.top()] > 0) {
+                        delete[] beenthere;
+                        return 1; }                // If our new site has a pebble, quit looking for pebbles and say we found one
 
-                    beenthere[prosp] = 1;                                    // Otherwise mark it as having been visited, but keep looking for a pebble
+                    beenthere[prosp] = 1;            // Otherwise mark it as having been visited, but keep looking for a pebble
                     //cout << "Current location is, in the for loop " << placesbeen.top() << endl;
 
                     break;                                                    // And break the for loop-- no point in continuing to explore cl's neighbors
@@ -175,6 +179,7 @@ bool SiteRP_cont::findpebble(int i) {
                 */
             }
         }
+        delete[] beenthere;
         return 0;
     }
 }
@@ -188,7 +193,10 @@ bool SiteRP_cont::findpebble(int i, int skip) {
         return 0;
     }
     else {
-        bool beenthere[size] = {};
+        bool *beenthere = new bool[size]; // We create an array to say whether we've been to these sites before (or should we create a global array and just set it to zero here?)
+        for (int ii = 0; ii < size; ii++)
+            beenthere[ii] = false;
+        
         beenthere[i] = 1;                    // which we haven't, to start, except for our starting site (and any skip sites)
         beenthere[skip] = 1;
         placesbeen.push(i);                    // start our path at the starting site
@@ -216,7 +224,7 @@ bool SiteRP_cont::findpebble(int i, int skip) {
                     placesbeen.push(prosp);      // and add it to the path
                     //cout << "Current location after pushing: " << placesbeen.top() << endl;
                     if (pc[placesbeen.top()] >
-                        0) { return 1; }        // If our new site has a pebble, quit looking for pebbles
+                        0) { delete[] beenthere; return 1; }        // If our new site has a pebble, quit looking for pebbles
                     beenthere[prosp] = 1;
                     //cout << "Current location is, in the for loop " << placesbeen.top() << endl;
                     break;
@@ -244,7 +252,8 @@ bool SiteRP_cont::findpebble(int i, int skip) {
                 */
             }
         }
-
+        
+        delete[] beenthere;
         return 0;
     }
 }
@@ -568,8 +577,10 @@ void SiteRP_cont::StoreRigidInfoOfSite(){
 
 bool SiteRP_cont::spanningrcluster() {
     // Do the DFS in the giant rigid cluster
-    double beenthere[size] = {};
-    std::fill_n(beenthere, size, EMPTY);
+    double *beenthere = new double[size]; // We create an array to say whether we've been to these sites before (or should we create a global array and just set it to zero here?)
+    for (int ii = 0; ii < size; ii++)
+        beenthere[ii] = EMPTY;
+    //std::fill_n(beenthere, size, EMPTY);
     std::stack<int> DFS_rcluster;
     // Find a starting point
     int v_start;
@@ -605,9 +616,9 @@ bool SiteRP_cont::spanningrcluster() {
             else //Existing marked displacement can be compared to current place to see if the spanning cluster exists.
             {
                 //std::cout << "The distance for these two atoms in the same cluster: " << fabs(beenthere[cl] - beenthere[prosp]) << std::endl;
-                std::cout << "!!!The distance for these two atoms in the same cluster: " << fabs(beenthere[cl] - beenthere[prosp]) << std::endl;
                 if (fabs(fabs(beenthere[cl] - beenthere[prosp]) - BoxLength) < 1.3) {
                     std::cout << "The distance for these two atoms in the same cluster: " << fabs(beenthere[cl] - beenthere[prosp]) << std::endl;
+                    delete[] beenthere;
                     return true;
                 }
             }
@@ -616,6 +627,7 @@ bool SiteRP_cont::spanningrcluster() {
             DFS_rcluster.pop();
         }
     }
+    delete[] beenthere;
     return false;
 }
 
@@ -673,6 +685,10 @@ float SiteRP_cont::distance(site &a, site &b) {
 void SiteRP_cont::BuildNetwork() // Has already added the rigidcluster function, as well as the spanning cluster
 {
     initemptytrigraph();
+    
+    std::cout << "####################################################################################################" << std::endl;
+    std::cout << " Building the Network... " << std::endl;
+    std::cout << "####################################################################################################" << std::endl;
 
     int SiteNum = vertices.size();
     numparts = SiteNum;
@@ -688,17 +704,57 @@ void SiteRP_cont::BuildNetwork() // Has already added the rigidcluster function,
             }
         }
     }
+    
+    std::cout << "####################################################################################################" << std::endl;
+    std::cout << " Done! " << std::endl;
+    std::cout << "####################################################################################################" << std::endl;
+
 
     setfilestream();
+    
+    std::cout << "####################################################################################################" << std::endl;
+    std::cout << " Identify the Rigid Cluster... " << std::endl;
+    std::cout << "####################################################################################################" << std::endl;
 
     rigidcluster();
 
+    std::cout << "####################################################################################################" << std::endl;
+    std::cout << " Done! " << std::endl;
+    std::cout << "####################################################################################################" << std::endl;
+    
+    std::cout << "####################################################################################################" << std::endl;
+    std::cout << " Identify the Spanning Cluster... " << std::endl;
+    std::cout << "####################################################################################################" << std::endl;
+
+    
     int span = spanningrcluster();
     log(span);
+    
+    std::cout << "####################################################################################################" << std::endl;
+    std::cout << " Done! " << std::endl;
+    std::cout << "####################################################################################################" << std::endl;
+
+    std::cout << "####################################################################################################" << std::endl;
+    std::cout << " Store the Rigid Infomation... " << std::endl;
+    std::cout << "####################################################################################################" << std::endl;
 
     StoreRigidInfoOfSite();
+    
+    std::cout << "####################################################################################################" << std::endl;
+    std::cout << " Done! " << std::endl;
+    std::cout << "####################################################################################################" << std::endl;
 
+    
+    std::cout << "####################################################################################################" << std::endl;
+    std::cout << " Write Back the Atoms... " << std::endl;
+    std::cout << "####################################################################################################" << std::endl;
+
+    
     RigidAtomWriteBack();
+    
+    std::cout << "####################################################################################################" << std::endl;
+    std::cout << " Done! " << std::endl;
+    std::cout << "####################################################################################################" << std::endl;
 
 }
 
@@ -795,6 +851,12 @@ void SiteRP_cont::ReadVerticeInfoFromCSV() {
 }
 
 void SiteRP_cont::ReadVerticeInfo() {
+    
+    std::cout << "####################################################################################################" << std::endl;
+    std::cout << " Read Vertice Information... " << std::endl;
+    std::cout << "####################################################################################################" << std::endl;
+
+    
     std::string ReadFile = "./MCdata/";
     ReadFile.append(FileName);
     ReadFile.append(".data");
@@ -849,6 +911,11 @@ void SiteRP_cont::ReadVerticeInfo() {
 
     InputDataFile.close();
     InputDataFile.close();
+    
+    std::cout << "####################################################################################################" << std::endl;
+    std::cout << " Done! " << std::endl;
+    std::cout << "####################################################################################################" << std::endl;
+
 }
 
 void SiteRP_cont::RigidAtomWriteBack() {
@@ -911,6 +978,12 @@ void SiteRP_cont::RigidAtomWriteBack() {
 }
 
 void SiteRP_cont::CoordNumber() {
+    
+    std::cout << "####################################################################################################" << std::endl;
+    std::cout << " Write the CoordNumber... " << std::endl;
+    std::cout << "####################################################################################################" << std::endl;
+
+    
     std::fill_n(CoordDist, size, 0);
     for (int i = 0; i < size; ++i) {
         int CoordNumIndex = undirectedgraph[i].size();
@@ -927,6 +1000,11 @@ void SiteRP_cont::CoordNumber() {
     double CoordNum = sum/size * 2;
 
     std::cout << "Coordination Number: " << CoordNum << std::endl;
+    
+    std::cout << "####################################################################################################" << std::endl;
+    std::cout << " Done! " << std::endl;
+    std::cout << "####################################################################################################" << std::endl;
+    
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
