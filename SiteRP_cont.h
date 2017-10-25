@@ -14,12 +14,16 @@
 #include "bond.h"
 #include "site.h"
 
+
 class SiteRP_cont {
-    static const int size = 62500; // The number of vertices in the graph
-    std::string FileName = "cfgT005d04N62500";
+protected:
+    int SIZE; // The number of vertices in the graph
+    std::string FileName;
     float BoxLength;
+    std::string ReadPATH;
+    std::string OutPATH;
 public:
-    short pc[size];                // Creates the pebble count at each vertex.
+    short* pc;                // Creates the pebble count at each vertex.
 
     int numparts;           // the number of particles (not pebbles) present in the system
     int numbonds;                    // The number of non-redundant bonds (original bonds and crossbraces) in the system
@@ -33,25 +37,54 @@ public:
     //int YSpanLastStatus;             // the last status of whether to have a spanning rigid cluster
 
 
-    std::vector<int> rcluster_site[size];     // Store all the information about rigid cluster decomposition in sites
-    std::vector<int> thegraph[size];        // thegraph is the graph of all loaded edges
-    std::vector<int> rgraph[size];        // rgraph is the graph of redundant bonds that don't take up any edges
-    std::vector<int> undirectedgraph[size];     // undirected graph for calculating the coordination number
+    std::vector<int>* rcluster_site;     // Store all the information about rigid cluster decomposition in sites
+    std::vector<int>* thegraph;        // thegraph is the graph of all loaded edges
+    std::vector<int>* rgraph;        // rgraph is the graph of redundant bonds that don't take up any edges
+    std::vector<int>* undirectedgraph;     // undirected graph for calculating the coordination number
     std::vector<Bond> edges;             //bonds only contains loaded edges
-    std::vector<int> giantrigidcluster[size];    //giantrigidcluster is the graph for the giant rigid cluster
+    std::vector<int>* giantrigidcluster;    //giantrigidcluster is the graph for the giant rigid cluster
+    std::vector<int>* giantrigidclusterOBC;    //giantrigidcluster is the graph for the giant rigid cluster with open boundary condition
     std::stack<int> placesbeen;            // The list of places been while looking for a pebble
     std::ofstream myfile;                  // The file stream to output the mainly wanted info
     std::ofstream rclusterfile;            // the file stream to output the rigid cluster decomposition info
+    
+    double* beenthere;    // The array to mark if a vertex is visited in DFS
+    
     //std::ifstream InputDataFile;            // read the data from Monte-Carlo data files
-    int EMPTY = -size-1;
+    int EMPTY;
 
-    int CoordDist[size];        // the coordination number distribution
+    int* CoordDist;        // the coordination number distribution
 
     //Constructor and destructor
     //SiteRP_cont(std::vector<site>& VerticesInput);
     //SiteRP_cont(int a) {numparts = a;};
-    //SiteRP_cont();
-    //~SiteRP_cont();
+    SiteRP_cont(int sizeIN, std::string FileNameIN, std::string ReadPATHIN, std::string OutPATHIN){
+        SIZE = sizeIN;
+        pc = new short[sizeIN];
+        rcluster_site = new std::vector<int>[sizeIN];
+        thegraph = new std::vector<int>[sizeIN];
+        rgraph = new std::vector<int>[sizeIN];
+        undirectedgraph = new std::vector<int>[sizeIN];
+        giantrigidcluster = new std::vector<int>[sizeIN];
+        giantrigidclusterOBC = new std::vector<int>[sizeIN];
+        beenthere = new double[sizeIN];
+        CoordDist = new int[sizeIN];
+        EMPTY = -sizeIN-1;
+        FileName = FileNameIN;
+        ReadPATH = ReadPATHIN;
+        OutPATH = OutPATHIN;
+    };
+    
+    ~SiteRP_cont(){
+        delete[] pc;
+        delete[] rcluster_site;
+        delete[] thegraph;
+        delete[] rgraph;
+        delete[] undirectedgraph;
+        delete[] giantrigidcluster;
+        delete[] beenthere;
+        delete[] CoordDist;
+    };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -134,7 +167,7 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     void setfilestream();
-    void log(int span = -1);
+    void log(std::pair<int,int> span);
 
 // listedges lists the edges from site i
     void listedges(int i);
@@ -182,7 +215,12 @@ public:
 
 // We need to pick out the giant rigid cluster from the network and then determine if it is the spanning cluster.
 
-    bool spanningrcluster();
+    // a function to calculate the bond length between two particles (without the effect of PBC)
+    float BondCoordShift(int prosp, int cl, int CoordDirection);
+    
+    std::pair<int, int> spanningrcluster();
+    
+    std::pair<int, int> spanningrclusterNEW();
 
     // Key difference for SiteRP to SiteRP_cont
 

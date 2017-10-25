@@ -125,9 +125,11 @@ bool SiteRP_cont::findpebble(int i) {
         return 0;
     }
     else {
-        bool *beenthere = new bool[size]; // We create an array to say whether we've been to these sites before (or should we create a global array and just set it to zero here?)
-        for (int ii = 0; ii < size; ii++)
-            beenthere[ii] = false;
+        //int beenthere[size] = {0}; // We create an array to say whether we've been to these sites before (or should we create a global array and just set it to zero here?)
+        for (int ii = 0; ii < SIZE; ii++)
+            beenthere[ii] = 0;
+        //std::uninitialized_fill_n(beenthere,size,0);
+
         
         beenthere[i] = 1;                    // which we haven't, to start, except for our starting site (and any skip sites)
         placesbeen.push(i);                    // start our path at the starting site
@@ -155,7 +157,6 @@ bool SiteRP_cont::findpebble(int i) {
 
 
                     if (pc[placesbeen.top()] > 0) {
-                        delete[] beenthere;
                         return 1; }                // If our new site has a pebble, quit looking for pebbles and say we found one
 
                     beenthere[prosp] = 1;            // Otherwise mark it as having been visited, but keep looking for a pebble
@@ -179,7 +180,6 @@ bool SiteRP_cont::findpebble(int i) {
                 */
             }
         }
-        delete[] beenthere;
         return 0;
     }
 }
@@ -193,9 +193,10 @@ bool SiteRP_cont::findpebble(int i, int skip) {
         return 0;
     }
     else {
-        bool *beenthere = new bool[size]; // We create an array to say whether we've been to these sites before (or should we create a global array and just set it to zero here?)
-        for (int ii = 0; ii < size; ii++)
-            beenthere[ii] = false;
+        //int beenthere[size] = {}; // We create an array to say whether we've been to these sites before (or should we create a global array and just set it to zero here?)
+        for (int ii = 0; ii < SIZE; ii++)
+            beenthere[ii] = 0;
+        //std::uninitialized_fill_n(beenthere,size,0);
         
         beenthere[i] = 1;                    // which we haven't, to start, except for our starting site (and any skip sites)
         beenthere[skip] = 1;
@@ -224,7 +225,7 @@ bool SiteRP_cont::findpebble(int i, int skip) {
                     placesbeen.push(prosp);      // and add it to the path
                     //cout << "Current location after pushing: " << placesbeen.top() << endl;
                     if (pc[placesbeen.top()] >
-                        0) { delete[] beenthere; return 1; }        // If our new site has a pebble, quit looking for pebbles
+                        0) { return 1; }        // If our new site has a pebble, quit looking for pebbles
                     beenthere[prosp] = 1;
                     //cout << "Current location is, in the for loop " << placesbeen.top() << endl;
                     break;
@@ -253,7 +254,6 @@ bool SiteRP_cont::findpebble(int i, int skip) {
             }
         }
         
-        delete[] beenthere;
         return 0;
     }
 }
@@ -316,7 +316,7 @@ bool SiteRP_cont::loadsites(int i, int j) {
 
 // addbond tries to load the sites. If it succeeds, it adds an edge from i to j and takes a pebble from i. Otherwise, it adds a redundant edge
 void SiteRP_cont::addbond(int i, int j) {
-    if (numbonds < 2 * size - 3 && loadsites(i, j))            // If there are at least four pebbles left, we try to load the sites
+    if (numbonds < 2 * SIZE - 3 && loadsites(i, j))            // If there are at least four pebbles left, we try to load the sites
     {
         addedge(i, j);                // if we succeed, we add the edge from i to j and remove a pebble from i
         numbonds++;
@@ -339,8 +339,8 @@ void SiteRP_cont::addbond(int i, int j) {
 
 void SiteRP_cont::setfilestream() {
 
-    std::string mychar = "./data/";
-    std::string mychar_rcluster = "./data/rcluster_";
+    std::string mychar = OutPATH;
+    std::string mychar_rcluster = OutPATH.append("rcluster_");
     std::string FileEnding = ".txt";
 
     mychar.append(FileName);
@@ -358,8 +358,8 @@ void SiteRP_cont::setfilestream() {
     //cout << mychar;
 }
 
-void SiteRP_cont::log(int span) {
-    myfile <<  numparts << "\t" << numbonds << "\t" << rbonds << "\t" << giantsize_bond << "\t" << giantsize_site << "\t" << span << "\n";
+void SiteRP_cont::log(std::pair<int, int> span) {
+    myfile <<  numparts << "\t" << numbonds << "\t" << rbonds << "\t" << giantsize_bond << "\t" << giantsize_site << "\t" << span.first << "\t" << span.second << "\n";
 }
 
 // listedges lists the edges from site i
@@ -375,7 +375,7 @@ void SiteRP_cont::listedges(int i) {
 
 // listalledges lists all the edges from the sites
 void SiteRP_cont::listalledges() {
-    for (int index = 0; index < size; index++) {
+    for (int index = 0; index < SIZE; index++) {
         listedges(index);
     }
 }
@@ -398,7 +398,7 @@ void SiteRP_cont::initgiantrigidcluster() {
         it->initBondRigidIndex();
     }
 
-    for (int bondindex = 0; bondindex < size; bondindex++)  // Clear the graphs of giantrigidcluster
+    for (int bondindex = 0; bondindex < SIZE; bondindex++)  // Clear the graphs of giantrigidcluster
     {
         giantrigidcluster[bondindex].clear();
     }
@@ -412,7 +412,7 @@ int SiteRP_cont::initemptytrigraph() {
     numparts = 0; // the number of particles
     rbonds = 0;   // the number of redundant bonds
 
-    for (int pcindex = 0; pcindex < size; pcindex++) // Just setting the pebble count to 2 everywhere.
+    for (int pcindex = 0; pcindex < SIZE; pcindex++) // Just setting the pebble count to 2 everywhere.
     {                                               // and setting which sites are occupied
         pc[pcindex] = 2;
     }
@@ -422,7 +422,7 @@ int SiteRP_cont::initemptytrigraph() {
         placesbeen.pop();
     }
 
-    for (int bondindex = 0; bondindex < size; bondindex++)  // Clear the graphs of redundant and nonredundant bonds
+    for (int bondindex = 0; bondindex < SIZE; bondindex++)  // Clear the graphs of redundant and nonredundant bonds
     {
         rgraph[bondindex].clear();
         thegraph[bondindex].clear();
@@ -448,8 +448,7 @@ int SiteRP_cont::initemptytrigraph() {
 
 bool SiteRP_cont::isredundant(int i, int j)  //see if the test bond between (i,j) is redundant(dependent)
 {
-    if (numbonds < 2 * size - 3 &&
-        loadsites(i, j))            // if there are at least four pebbles left, we try to load the sites
+    if (numbonds < 2 * SIZE - 3 && loadsites(i, j))            // if there are at least four pebbles left, we try to load the sites
     {
         return 0;                // if we succeed, then the edge from i to j is independent
     }
@@ -508,16 +507,23 @@ void SiteRP_cont::rigidcluster() // mark the rigid clusters
             int site_J = it->vertices.second; //the two sites of the rigid bond
             giantrigidcluster[site_I].push_back(site_J);
             giantrigidcluster[site_J].push_back(site_I);
+            if (fabs(fabs(vertices[site_I].XCoordinate-vertices[site_J].XCoordinate)-BoxLength) > 2.6 && fabs(fabs(vertices[site_I].YCoordinate-vertices[site_J].YCoordinate)-BoxLength) > 2.6) {// build the giant rigid cluster with open boundary condition (for identifying the spanning status later)
+                giantrigidclusterOBC[site_I].push_back(site_J);
+                giantrigidclusterOBC[site_J].push_back(site_I);
+            }
         }
     }
 
-    for (int i = 0; i <= size - 1; i++) {
-        if (!giantrigidcluster[i].empty()) {
+    for (int i = 0; i <= SIZE - 1; i++) {
+        if (!giantrigidcluster[i].empty() && giantrigidcluster[i].size() > 1) {
             giantsize_site++;
             //std::cout << i << std::endl;
         }
+        else if(giantrigidcluster[i].size() == 1){
+            giantrigidcluster[i].clear();
+            giantrigidclusterOBC[i].clear();
+        }
     }
-
 }
 
 
@@ -532,7 +538,7 @@ void SiteRP_cont::rigidcluster() // mark the rigid clusters
 // store the rigid cluster decomposition information in sites (initial rcluster_site before the running of this function)
 void SiteRP_cont::StoreRigidInfoOfSite(){
     // clear the stored rigid cluster info, which is already not useful
-    for (int i = 0; i <= size - 1; ++i) {
+    for (int i = 0; i <= SIZE - 1; ++i) {
         rcluster_site[i].clear();
     }
 
@@ -552,7 +558,7 @@ void SiteRP_cont::StoreRigidInfoOfSite(){
     }
 
     // print out the rigid cluster decomposition info
-    for (int st = 0; st <= size - 1; ++st) {
+    for (int st = 0; st <= SIZE - 1; ++st) {
         if (rcluster_site[st].empty()){
             rclusterfile << "0" << "\n";
         }
@@ -575,24 +581,53 @@ void SiteRP_cont::StoreRigidInfoOfSite(){
 
 // We need to pick out the giant rigid cluster from the network and then determine if it is the spanning cluster.
 
-bool SiteRP_cont::spanningrcluster() {
+float SiteRP_cont::BondCoordShift(int prosp, int cl, int CoordDirection){
+    if (CoordDirection == 1) {
+        
+        if (fabs(vertices[prosp].XCoordinate-vertices[cl].XCoordinate) < fabs(BoxLength - fabs(vertices[prosp].XCoordinate-vertices[cl].XCoordinate))) {
+            return (vertices[prosp].XCoordinate - vertices[cl].XCoordinate);
+        }
+        else{
+            int SIGN = (vertices[prosp].XCoordinate - vertices[cl].XCoordinate > 0) - (vertices[prosp].XCoordinate - vertices[cl].XCoordinate < 0);
+            return (-SIGN*fabs(BoxLength - fabs(vertices[prosp].XCoordinate-vertices[cl].XCoordinate)));
+        }
+    
+    } else if (CoordDirection == 2) {
+        
+        if (fabs(vertices[prosp].YCoordinate-vertices[cl].YCoordinate) < fabs(BoxLength - fabs(vertices[prosp].YCoordinate-vertices[cl].YCoordinate))) {
+            return (vertices[prosp].YCoordinate - vertices[cl].YCoordinate);
+        }
+        else{
+            int SIGN = (vertices[prosp].YCoordinate - vertices[cl].YCoordinate > 0) - (vertices[prosp].YCoordinate - vertices[cl].YCoordinate < 0);
+            return (-SIGN*fabs(BoxLength - fabs(vertices[prosp].YCoordinate-vertices[cl].YCoordinate)));
+        }
+    } else{
+        std::cout << "Input parameter for BondCoord should specify the direction in character x as 1 OR y as 2" << std::endl;
+        return EMPTY;
+    }
+}
+
+// use low-efficient method to check the spanning status in both x and y direction (because slightly different, it is not so straghtforward to make them work at the same time)
+std::pair<int, int> SiteRP_cont::spanningrcluster() {
+    // For direction X =============================================================
+    bool FLAGx = false;
     // Do the DFS in the giant rigid cluster
-    double *beenthere = new double[size]; // We create an array to say whether we've been to these sites before (or should we create a global array and just set it to zero here?)
-    for (int ii = 0; ii < size; ii++)
+    
+    //double beenthere[size]; // We create an array to say whether we've been to these sites before (or should we create a global array and just set it to zero here?)
+    for (int ii = 0; ii < SIZE; ii++)
         beenthere[ii] = EMPTY;
-    //std::fill_n(beenthere, size, EMPTY);
     std::stack<int> DFS_rcluster;
     // Find a starting point
     int v_start;
 
-    for (v_start = 0; v_start < size - 1; v_start++) {
-        if (!giantrigidcluster[v_start].empty()) {
+    for (v_start = 0; v_start < SIZE - 1; v_start++) { // start from v_start which is not in a single-bond rigid cluster
+        if (!giantrigidcluster[v_start].empty() && giantrigidcluster[v_start].size() != 1) {
             break;
         }
     }
-
+    
     //std::cout << v_start << std::endl;
-
+    
     //v_start is the starting point for the DFS
     beenthere[v_start] = 0.0;
     DFS_rcluster.push(v_start);
@@ -601,34 +636,215 @@ bool SiteRP_cont::spanningrcluster() {
     while (DFS_rcluster.size() > 0) // make sure the DFS is in the giant rigid cluster
     {
         cl = DFS_rcluster.top();
+        //std::cout<< "stack size: " << DFS_rcluster.size() << std::endl;
         for (int index1 = 0; index1 < giantrigidcluster[cl].size(); index1++) {
             prosp = giantrigidcluster[cl].at(index1);
+            //std::cout << "giant cluster bond size: " << giantrigidcluster[cl].size() << std::endl;
+            //std::cout << "coordinate num: " << beenthere[prosp] << std::endl;
+            
+            // check if the bond goes to y-periodic boundary
+            if (fabs(vertices[prosp].YCoordinate-vertices[cl].YCoordinate) > fabs(BoxLength - fabs(vertices[prosp].YCoordinate-vertices[cl].YCoordinate))) {
+                continue;
+            }
+            
             if (beenthere[prosp] == EMPTY) {
                 DFS_rcluster.push(prosp);
                 //Do sth here
                 //beenthere[prosp]=1;
 
-                //Get the x-displacement for prosp from the x-displacement for cl
-                beenthere[prosp] = beenthere[cl] + vertices[prosp].XCoordinate - vertices[cl].XCoordinate;
+                //Get the x-displacement for prosp from the x-displacement for cl (1 for x-displacement)
+                beenthere[prosp] = beenthere[cl] + BondCoordShift(prosp, cl, 1);
 
-                break;
+                //break;
             }
             else //Existing marked displacement can be compared to current place to see if the spanning cluster exists.
             {
-                //std::cout << "The distance for these two atoms in the same cluster: " << fabs(beenthere[cl] - beenthere[prosp]) << std::endl;
+                //std::cout << "hello" << std::endl;
                 if (fabs(fabs(beenthere[cl] - beenthere[prosp]) - BoxLength) < 1.3) {
                     std::cout << "The distance for these two atoms in the same cluster: " << fabs(beenthere[cl] - beenthere[prosp]) << std::endl;
-                    delete[] beenthere;
-                    return true;
+                    std::cout << "index of cl, prosp: " << cl << ", " << prosp << std::endl;
+                    FLAGx = true;
                 }
             }
+         
         }
         if (cl == DFS_rcluster.top() || DFS_rcluster.size() == 0) {
             DFS_rcluster.pop();
         }
     }
-    delete[] beenthere;
-    return false;
+//
+//    int SiteNum = vertices.size();
+////    for (int i = 0; i < SiteNum; ++i) {
+////        for (int j = 0; j < SiteNum; ++j) {
+////            float AtomDistance_PBC = fabs(fabs(beenthere[i] - beenthere[j]) - BoxLength);
+////            if (beenthere[i] != EMPTY && beenthere[i] != EMPTY){
+////            }
+////        }
+////    }
+//
+//    int count1 = 0;
+//    for (int i = 0; i < SiteNum; ++i){
+//        if (beenthere[i] != EMPTY){
+//            count1++;
+//        }
+//    }
+//    int count2 = 0;
+//    for (int i = 0; i < SiteNum; ++i){
+//        if (!giantrigidcluster[i].empty()){
+//            if (giantrigidcluster[i].size() == 1) {
+//                std::cout << "wierd giant cluster bond size: " << giantrigidcluster[i].size() << " index: " << i << std::endl;
+//            }
+//            count2++;
+//        }
+//    }
+//
+//    std::cout << count1 << std::endl;
+//    std::cout << count2 << std::endl;
+//
+    
+    // For direction Y =============================================================
+
+    bool FLAGy = false;
+    // Do the DFS in the giant rigid cluster
+    
+    for (int ii = 0; ii < SIZE; ii++)
+        beenthere[ii] = EMPTY;
+    while(!DFS_rcluster.empty()){ // clear the stack
+        std::cout << "Stack is not empty, pls check here!" << std::endl;
+        DFS_rcluster.pop();
+    }
+    // Starting point is already found
+    
+    //v_start is the starting point for the DFS
+    beenthere[v_start] = 0.0;
+    DFS_rcluster.push(v_start);
+    while (DFS_rcluster.size() > 0) // make sure the DFS is in the giant rigid cluster
+    {
+        cl = DFS_rcluster.top();
+        for (int index1 = 0; index1 < giantrigidcluster[cl].size(); index1++) {
+            prosp = giantrigidcluster[cl].at(index1);
+            if (fabs(vertices[prosp].XCoordinate-vertices[cl].XCoordinate) > fabs(BoxLength - fabs(vertices[prosp].XCoordinate-vertices[cl].XCoordinate))) {
+                continue;
+            }
+            
+            if (beenthere[prosp] == EMPTY) {
+                DFS_rcluster.push(prosp);
+                //Get the y-displacement for prosp from the y-displacement for cl (2 for x-displacement)
+                beenthere[prosp] = beenthere[cl] + BondCoordShift(prosp, cl, 2);
+                
+            }
+            else //Existing marked displacement can be compared to current place to see if the spanning cluster exists.
+            {
+                if (fabs(fabs(beenthere[cl] - beenthere[prosp]) - BoxLength) < 1.3) {
+                    FLAGy = true;
+                }
+            }
+            
+        }
+        if (cl == DFS_rcluster.top() || DFS_rcluster.size() == 0) {
+            DFS_rcluster.pop();
+        }
+    }
+    
+    std::pair<int, int> SpanStatus(FLAGx,FLAGy);
+    
+    return SpanStatus;
+}
+
+// check x-direction: prohibit y-direction's PBC, similarly to the case of checking y-direction
+std::pair<int, int> SiteRP_cont::spanningrclusterNEW() { // there are some unsolved bugs in spanningrcluster function, so I use another method to check the spanning status, which is described there. I modify the giant rigid cluster into open boundary condition and then solve the spanning in the OBC rigid cluster.
+    
+    // for X-direction
+    int FLAGx = 0;
+    for (int ii = 0; ii < SIZE; ii++)
+        beenthere[ii] = EMPTY;
+    bool breakFLAG = false;
+    for (int v_index = 0; v_index < SIZE - 1; v_index++) {
+        if (!giantrigidclusterOBC[v_index].empty() && fabs(vertices[v_index].XCoordinate) < 1.3 && beenthere[v_index] == EMPTY) {
+            // start from the left boundary of the lattice and do tree search (DFS)
+            std::stack<int> DFS_rcluster;
+            DFS_rcluster.push(v_index);
+            int cl; //cl is the current location
+            int prosp; //prosp is the prospective location we're going to move to
+            while (DFS_rcluster.size() > 0) // make sure the DFS is in the giant rigid cluster
+            {
+                cl = DFS_rcluster.top();
+                for (int index1 = 0; index1 < giantrigidclusterOBC[cl].size(); index1++) {
+                    prosp = giantrigidclusterOBC[cl].at(index1);
+                    if (beenthere[prosp] == EMPTY) {
+                        DFS_rcluster.push(prosp);
+                        beenthere[prosp] = 1;
+                        
+                    }
+                    else //Existing marked displacement can be compared to current place to see if the spanning cluster exists.
+                    {
+                        if (fabs(vertices[prosp].XCoordinate - BoxLength) < 1.3) {
+                            FLAGx = true;
+                            breakFLAG = true;
+                            break;
+                        }
+                    }
+                }
+                if (breakFLAG == true) {
+                    break;
+                }
+                if (cl == DFS_rcluster.top() || DFS_rcluster.size() == 0) {
+                    DFS_rcluster.pop();
+                }
+            }
+            if (breakFLAG == true) {
+                break;
+            }
+        }
+    }
+    
+    // for Y-direction
+    int FLAGy = 0;
+    for (int ii = 0; ii < SIZE; ii++)
+        beenthere[ii] = EMPTY;
+    breakFLAG = false;
+    for (int v_index = 0; v_index < SIZE - 1; v_index++) {
+        if (!giantrigidclusterOBC[v_index].empty() && fabs(vertices[v_index].YCoordinate) < 1.3 && beenthere[v_index] == EMPTY) {
+            // start from the left boundary of the lattice and do tree search (DFS)
+            std::stack<int> DFS_rcluster;
+            DFS_rcluster.push(v_index);
+            int cl; //cl is the current location
+            int prosp; //prosp is the prospective location we're going to move to
+            while (DFS_rcluster.size() > 0) // make sure the DFS is in the giant rigid cluster
+            {
+                cl = DFS_rcluster.top();
+                for (int index1 = 0; index1 < giantrigidclusterOBC[cl].size(); index1++) {
+                    prosp = giantrigidclusterOBC[cl].at(index1);
+                    if (beenthere[prosp] == EMPTY) {
+                        DFS_rcluster.push(prosp);
+                        beenthere[prosp] = 1;
+                        
+                    }
+                    else //Existing marked displacement can be compared to current place to see if the spanning cluster exists.
+                    {
+                        if (fabs(vertices[prosp].YCoordinate - BoxLength) < 1.3) {
+                            FLAGy = true;
+                            breakFLAG = true;
+                            break;
+                        }
+                    }
+                }
+                if (breakFLAG == true) {
+                    break;
+                }
+                if (cl == DFS_rcluster.top() || DFS_rcluster.size() == 0) {
+                    DFS_rcluster.pop();
+                }
+            }
+            if (breakFLAG == true) {
+                break;
+            }
+        }
+    }
+    
+    std::pair<int, int> SpanStatus(FLAGx,FLAGy);
+    
+    return SpanStatus;
 }
 
 // Key difference for SiteRP to SiteRP_cont
@@ -727,7 +943,7 @@ void SiteRP_cont::BuildNetwork() // Has already added the rigidcluster function,
     std::cout << "####################################################################################################" << std::endl;
 
     
-    int span = spanningrcluster();
+    std::pair<int, int> span = spanningrclusterNEW();
     log(span);
     
     std::cout << "####################################################################################################" << std::endl;
@@ -771,8 +987,9 @@ void SiteRP_cont::StudyArtificialNetwork()
     
     rigidcluster();
     
-    int span = spanningrcluster();
-    log();
+    // old version of spanningrcluster function
+    //int span = spanningrcluster();
+    //log();
     
     StoreRigidInfoOfSite();
     
@@ -857,7 +1074,7 @@ void SiteRP_cont::ReadVerticeInfo() {
     std::cout << "####################################################################################################" << std::endl;
 
     
-    std::string ReadFile = "./MCdata/";
+    std::string ReadFile = ReadPATH;
     ReadFile.append(FileName);
     ReadFile.append(".data");
 
@@ -868,7 +1085,7 @@ void SiteRP_cont::ReadVerticeInfo() {
 
     unsigned int count = 0;
     int LineInitialNum = 15;
-    int LineEndNum = LineInitialNum + size;
+    int LineEndNum = LineInitialNum + SIZE;
 
     while (std::getline(InputDataFile, line))
     {
@@ -920,11 +1137,11 @@ void SiteRP_cont::ReadVerticeInfo() {
 
 void SiteRP_cont::RigidAtomWriteBack() {
     
-    std::string ReadFile = "./MCdata/";
+    std::string ReadFile = ReadPATH;
     ReadFile.append(FileName);
     ReadFile.append(".data");
 
-    std::string WriteFile = "./MCdata/";
+    std::string WriteFile = ReadPATH;
     WriteFile.append(FileName);
     WriteFile.append("OUT.data");
 
@@ -937,7 +1154,7 @@ void SiteRP_cont::RigidAtomWriteBack() {
 
     unsigned int count = 0;
     int LineInitialNum = 15;
-    int LineEndNum = LineInitialNum + size;
+    int LineEndNum = LineInitialNum + SIZE;
 
     while (std::getline(ReadInputFile, line))
     {
@@ -984,20 +1201,20 @@ void SiteRP_cont::CoordNumber() {
     std::cout << "####################################################################################################" << std::endl;
 
     
-    std::fill_n(CoordDist, size, 0);
-    for (int i = 0; i < size; ++i) {
+    std::fill_n(CoordDist, SIZE, 0);
+    for (int i = 0; i < SIZE; ++i) {
         int CoordNumIndex = undirectedgraph[i].size();
         CoordDist[CoordNumIndex]++;
     }
 
     double sum = 0;
 
-    for (int j = 0; j < size; ++j) {
+    for (int j = 0; j < SIZE; ++j) {
         std::cout << "Coord " << j << " : " << CoordDist[j] << std::endl;
         sum += j*CoordDist[j];
     }
 
-    double CoordNum = sum/size * 2;
+    double CoordNum = sum/SIZE;
 
     std::cout << "Coordination Number: " << CoordNum << std::endl;
     

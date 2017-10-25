@@ -5,7 +5,7 @@ project(PebbleGameTest)
 #option(Testing "Enable testing" ON)
 #include(EnableGtests) #defined in ./cmake
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O0 -g -v")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -g -v")
 
 set(SOURCE_FILES
     SiteRP.cpp bond.cpp main.cpp SiteRP_cont.cpp )
