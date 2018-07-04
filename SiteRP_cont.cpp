@@ -10,6 +10,8 @@
 #include <boost/tokenizer.hpp>
 #include <boost/foreach.hpp>
 #include <sstream>
+#include <cmath>
+#include <complex>
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -337,11 +339,10 @@ void SiteRP_cont::addbond(int i, int j) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void SiteRP_cont::setfilestream() {
+void SiteRP_cont::setfilestream_rigid_decomposition() {
 
     std::string mychar = OutPATH;
-    std::string mychar_rcluster = OutPATH.append("rcluster_");
-    std::string FileEnding = ".txt";
+    std::string mychar_rcluster = OutPATH+std::string("rcluster_");
 
     mychar.append(FileName);
     mychar.append(".txt");
@@ -356,6 +357,38 @@ void SiteRP_cont::setfilestream() {
     rclusterfile.open(mychar_rcluster);
 
     //cout << mychar;
+}
+
+void SiteRP_cont::setfilestream_coordination_number() {
+    
+    std::string mychar_coordnum = OutPATH+std::string("coordNUM_");
+    
+    mychar_coordnum.append(FileName);
+    mychar_coordnum.append(".txt");
+    
+    std::string mychar_coordnum_hist = OutPATH+std::string("coordNUM_hist_");
+    
+    mychar_coordnum_hist.append(FileName);
+    mychar_coordnum_hist.append(".txt");
+    
+    coordnum_hist_file.close();
+    coordnum_hist_file.open(mychar_coordnum_hist);
+    
+    coordnumfile.close();
+    coordnumfile.open(mychar_coordnum);
+    
+}
+
+void SiteRP_cont::setfilestream_bond_order_parameter() {
+    
+    std::string mychar_bondorderpara = OutPATH.append("BondOrderPara_");
+    
+    mychar_bondorderpara.append(FileName);
+    mychar_bondorderpara.append(".txt");
+    
+    bondorderparafile.close();
+    bondorderparafile.open(mychar_bondorderpara);
+    
 }
 
 void SiteRP_cont::log(std::pair<int, int> span) {
@@ -507,7 +540,7 @@ void SiteRP_cont::rigidcluster() // mark the rigid clusters
             int site_J = it->vertices.second; //the two sites of the rigid bond
             giantrigidcluster[site_I].push_back(site_J);
             giantrigidcluster[site_J].push_back(site_I);
-            if (fabs(fabs(vertices[site_I].XCoordinate-vertices[site_J].XCoordinate)-BoxLength) > 2.6 && fabs(fabs(vertices[site_I].YCoordinate-vertices[site_J].YCoordinate)-BoxLength) > 2.6) {// build the giant rigid cluster with open boundary condition (for identifying the spanning status later)
+            if (fabs(fabs(vertices[site_I].XCoordinate-vertices[site_J].XCoordinate)-BoxLength) > BondCriteria*2 && fabs(fabs(vertices[site_I].YCoordinate-vertices[site_J].YCoordinate)-BoxLength) > BondCriteria*2) {// build the giant rigid cluster with open boundary condition (for identifying the spanning status later)
                 giantrigidclusterOBC[site_I].push_back(site_J);
                 giantrigidclusterOBC[site_J].push_back(site_I);
             }
@@ -660,7 +693,7 @@ std::pair<int, int> SiteRP_cont::spanningrcluster() {
             else //Existing marked displacement can be compared to current place to see if the spanning cluster exists.
             {
                 //std::cout << "hello" << std::endl;
-                if (fabs(fabs(beenthere[cl] - beenthere[prosp]) - BoxLength) < 1.3) {
+                if (fabs(fabs(beenthere[cl] - beenthere[prosp]) - BoxLength) < BondCriteria) {
                     std::cout << "The distance for these two atoms in the same cluster: " << fabs(beenthere[cl] - beenthere[prosp]) << std::endl;
                     std::cout << "index of cl, prosp: " << cl << ", " << prosp << std::endl;
                     FLAGx = true;
@@ -735,7 +768,7 @@ std::pair<int, int> SiteRP_cont::spanningrcluster() {
             }
             else //Existing marked displacement can be compared to current place to see if the spanning cluster exists.
             {
-                if (fabs(fabs(beenthere[cl] - beenthere[prosp]) - BoxLength) < 1.3) {
+                if (fabs(fabs(beenthere[cl] - beenthere[prosp]) - BoxLength) < BondCriteria) {
                     FLAGy = true;
                 }
             }
@@ -760,7 +793,7 @@ std::pair<int, int> SiteRP_cont::spanningrclusterNEW() { // there are some unsol
         beenthere[ii] = EMPTY;
     bool breakFLAG = false;
     for (int v_index = 0; v_index < SIZE - 1; v_index++) {
-        if (!giantrigidclusterOBC[v_index].empty() && fabs(vertices[v_index].XCoordinate) < 1.3 && beenthere[v_index] == EMPTY) {
+        if (!giantrigidclusterOBC[v_index].empty() && fabs(vertices[v_index].XCoordinate) < BondCriteria && beenthere[v_index] == EMPTY) {
             // start from the left boundary of the lattice and do tree search (DFS)
             std::stack<int> DFS_rcluster;
             DFS_rcluster.push(v_index);
@@ -778,7 +811,7 @@ std::pair<int, int> SiteRP_cont::spanningrclusterNEW() { // there are some unsol
                     }
                     else //Existing marked displacement can be compared to current place to see if the spanning cluster exists.
                     {
-                        if (fabs(vertices[prosp].XCoordinate - BoxLength) < 1.3) {
+                        if (fabs(vertices[prosp].XCoordinate - BoxLength) < BondCriteria) {
                             FLAGx = true;
                             breakFLAG = true;
                             break;
@@ -804,7 +837,7 @@ std::pair<int, int> SiteRP_cont::spanningrclusterNEW() { // there are some unsol
         beenthere[ii] = EMPTY;
     breakFLAG = false;
     for (int v_index = 0; v_index < SIZE - 1; v_index++) {
-        if (!giantrigidclusterOBC[v_index].empty() && fabs(vertices[v_index].YCoordinate) < 1.3 && beenthere[v_index] == EMPTY) {
+        if (!giantrigidclusterOBC[v_index].empty() && fabs(vertices[v_index].YCoordinate) < BondCriteria && beenthere[v_index] == EMPTY) {
             // start from the left boundary of the lattice and do tree search (DFS)
             std::stack<int> DFS_rcluster;
             DFS_rcluster.push(v_index);
@@ -822,7 +855,7 @@ std::pair<int, int> SiteRP_cont::spanningrclusterNEW() { // there are some unsol
                     }
                     else //Existing marked displacement can be compared to current place to see if the spanning cluster exists.
                     {
-                        if (fabs(vertices[prosp].YCoordinate - BoxLength) < 1.3) {
+                        if (fabs(vertices[prosp].YCoordinate - BoxLength) < BondCriteria) {
                             FLAGy = true;
                             breakFLAG = true;
                             break;
@@ -911,7 +944,7 @@ void SiteRP_cont::BuildNetwork() // Has already added the rigidcluster function,
     for (int i = 0; i < SiteNum; ++i) {
         for (int j = 0; j < SiteNum; ++j) {
             float AtomDistance = distance(vertices[i],vertices[j]);
-            if (AtomDistance <= 1.3 && i != j){ // when the distance between two particles is less than 1.3d (d=1), the bond exists.
+            if (AtomDistance <= BondCriteria && i != j){ // when the distance between two particles is less than 1.3d (d=1), the bond exists.
                 undirectedgraph[i].push_back(j);
                 if (isempty(i, j))
                 {
@@ -925,15 +958,18 @@ void SiteRP_cont::BuildNetwork() // Has already added the rigidcluster function,
     std::cout << " Done! " << std::endl;
     std::cout << "####################################################################################################" << std::endl;
 
+}
 
-    setfilestream();
+void SiteRP_cont::RigidClusterDecomposition()
+{
+    setfilestream_rigid_decomposition();
     
     std::cout << "####################################################################################################" << std::endl;
     std::cout << " Identify the Rigid Cluster... " << std::endl;
     std::cout << "####################################################################################################" << std::endl;
-
+    
     rigidcluster();
-
+    
     std::cout << "####################################################################################################" << std::endl;
     std::cout << " Done! " << std::endl;
     std::cout << "####################################################################################################" << std::endl;
@@ -941,7 +977,7 @@ void SiteRP_cont::BuildNetwork() // Has already added the rigidcluster function,
     std::cout << "####################################################################################################" << std::endl;
     std::cout << " Identify the Spanning Cluster... " << std::endl;
     std::cout << "####################################################################################################" << std::endl;
-
+    
     
     std::pair<int, int> span = spanningrclusterNEW();
     log(span);
@@ -949,24 +985,24 @@ void SiteRP_cont::BuildNetwork() // Has already added the rigidcluster function,
     std::cout << "####################################################################################################" << std::endl;
     std::cout << " Done! " << std::endl;
     std::cout << "####################################################################################################" << std::endl;
-
+    
     std::cout << "####################################################################################################" << std::endl;
     std::cout << " Store the Rigid Infomation... " << std::endl;
     std::cout << "####################################################################################################" << std::endl;
-
+    
     StoreRigidInfoOfSite();
     
     std::cout << "####################################################################################################" << std::endl;
     std::cout << " Done! " << std::endl;
     std::cout << "####################################################################################################" << std::endl;
-
+    
     
     std::cout << "####################################################################################################" << std::endl;
     std::cout << " Write Back the Atoms... " << std::endl;
     std::cout << "####################################################################################################" << std::endl;
-
     
-    RigidAtomWriteBack();
+    
+    RigidAtomWriteBack_dump();
     
     std::cout << "####################################################################################################" << std::endl;
     std::cout << " Done! " << std::endl;
@@ -1076,7 +1112,7 @@ void SiteRP_cont::ReadVerticeInfo() {
     
     std::string ReadFile = ReadPATH;
     ReadFile.append(FileName);
-    ReadFile.append(".data");
+    //ReadFile.append(".data");
 
     std::ifstream InputDataFile(ReadFile);
 
@@ -1135,11 +1171,134 @@ void SiteRP_cont::ReadVerticeInfo() {
 
 }
 
+void SiteRP_cont::ReadVerticeInfofromdump(){
+    
+    std::cout << "####################################################################################################" << std::endl;
+    std::cout << " Read Vertice Information... " << std::endl;
+    std::cout << "####################################################################################################" << std::endl;
+    
+    
+    std::string ReadFile = ReadPATH;
+    ReadFile.append(FileName);
+    
+    std::ifstream InputDataFile(ReadFile);
+    
+    // read the data to vertices
+    std::string line;
+    
+    unsigned int count = 0;
+    int LineInitialNum = 9;
+    int LineEndNum = LineInitialNum + SIZE;
+    
+    while (std::getline(InputDataFile, line))
+    {
+        ++count;
+        if (count > LineEndNum) { break; }    // done
+        if (count == 6)
+        {
+            boost::char_separator<char> sep(" ");
+            boost::tokenizer<boost::char_separator<char>> tokens(line, sep);
+            int flag = 0;
+            BOOST_FOREACH (const auto& t, tokens) {
+                ++flag;
+                if (flag == 2)
+                {
+                    BoxLength = std::stod(t);
+                }
+            }
+        }
+        if (count > LineInitialNum)
+        {
+            //std::cout << line << std::endl;
+            boost::char_separator<char> sep(" ");
+            boost::tokenizer<boost::char_separator<char>> tokens(line, sep);
+            int flag = 0;
+            int AtomIndex = 0;
+            double AtomXCoord = 0.0;
+            double AtomYCoord = 0.0;
+            BOOST_FOREACH (const auto& t, tokens) {
+                ++flag;
+                switch (flag){
+                    case 1: AtomIndex = std::stod(t);
+                    case 3: AtomXCoord = std::stod(t)*BoxLength;
+                    case 4: AtomYCoord = std::stod(t)*BoxLength;
+                }
+            }
+            site Newsite(AtomXCoord,AtomYCoord,AtomIndex);
+            vertices.push_back(Newsite);
+        }
+    }
+    
+    InputDataFile.close();
+    InputDataFile.close();
+    
+    std::cout << "####################################################################################################" << std::endl;
+    std::cout << " Done! " << std::endl;
+    std::cout << "####################################################################################################" << std::endl;
+    
+}
+
+void SiteRP_cont::RigidAtomWriteBack_dump() {
+    
+    std::string ReadFile = ReadPATH;
+    ReadFile.append(FileName);
+    //ReadFile.append(".data");
+    
+    std::string WriteFile = ReadPATH;
+    WriteFile.append(FileName);
+    WriteFile.append("OUT.data");
+    
+    std::ifstream ReadInputFile(ReadFile);
+    std::ofstream WriteBackDataFile;
+    WriteBackDataFile.open(WriteFile);
+    
+    // read the data to vertices
+    std::string line;
+    
+    unsigned int count = 0;
+    int LineInitialNum = 9;
+    int LineEndNum = LineInitialNum + SIZE;
+    
+    while (std::getline(ReadInputFile, line))
+    {
+        ++count;
+        std::string newline;
+        
+        if (count > LineInitialNum && count <= LineEndNum)
+        {
+            //std::cout << line << std::endl;
+            boost::char_separator<char> sep(" ");
+            boost::tokenizer<boost::char_separator<char>> tokens(line, sep);
+            int flag = 0;
+            
+            for (const auto& t : tokens) {
+                ++flag;
+                if (!giantrigidcluster[count-LineInitialNum-1].empty() && flag == 2){
+                    newline.append("2 ");
+                } else {
+                    newline.append(t);
+                    newline.append(" ");
+                }
+            }
+            newline.append("\n");
+            
+            WriteBackDataFile << newline;
+            //std::cout << newline << std::endl;
+            
+        } else {
+            WriteBackDataFile << line << "\n";
+        }
+    }
+    
+    ReadInputFile.close();
+    WriteBackDataFile.close();
+}
+
 void SiteRP_cont::RigidAtomWriteBack() {
     
     std::string ReadFile = ReadPATH;
     ReadFile.append(FileName);
-    ReadFile.append(".data");
+    //ReadFile.append(".data");
 
     std::string WriteFile = ReadPATH;
     WriteFile.append(FileName);
@@ -1196,6 +1355,8 @@ void SiteRP_cont::RigidAtomWriteBack() {
 
 void SiteRP_cont::CoordNumber() {
     
+    setfilestream_coordination_number();
+    
     std::cout << "####################################################################################################" << std::endl;
     std::cout << " Write the CoordNumber... " << std::endl;
     std::cout << "####################################################################################################" << std::endl;
@@ -1206,17 +1367,55 @@ void SiteRP_cont::CoordNumber() {
         int CoordNumIndex = undirectedgraph[i].size();
         CoordDist[CoordNumIndex]++;
     }
+    
+    for (int i = 0; i < SIZE; ++i) {
+        coordnumfile << undirectedgraph[i].size() << std::endl;
+    }
 
     double sum = 0;
 
     for (int j = 0; j < SIZE; ++j) {
-        std::cout << "Coord " << j << " : " << CoordDist[j] << std::endl;
+        coordnum_hist_file << j << " " << CoordDist[j] << std::endl;
         sum += j*CoordDist[j];
     }
 
     double CoordNum = sum/SIZE;
 
-    std::cout << "Coordination Number: " << CoordNum << std::endl;
+    coordnum_hist_file << "Average Coordination Number: " << CoordNum << std::endl;
+    
+    std::cout << "####################################################################################################" << std::endl;
+    std::cout << " Done! " << std::endl;
+    std::cout << "####################################################################################################" << std::endl;
+    
+}
+
+void SiteRP_cont::BondOrderParameter(){
+    
+    setfilestream_bond_order_parameter();
+    
+    std::cout << "####################################################################################################" << std::endl;
+    std::cout << " Write the Bond Order Parameter... " << std::endl;
+    std::cout << "####################################################################################################" << std::endl;
+    
+    for (int i = 0; i < SIZE; ++i) {
+        std::complex<long double> phi_6 (0.0,0.0);
+        for (int v_index = 0; v_index < undirectedgraph[i].size(); ++v_index) {
+            float y = vertices[undirectedgraph[i][v_index]].YCoordinate-vertices[i].YCoordinate;
+            float x = vertices[undirectedgraph[i][v_index]].XCoordinate-vertices[i].XCoordinate;
+            float theta = std::atan2(y,x);
+            std::complex<long double> theta_complex (0.0,theta*6);
+            phi_6 += std::exp(theta_complex);
+        }
+        int i_size = undirectedgraph[i].size();
+        if (i_size != 0) {
+            phi_6 = phi_6/std::complex<long double> (i_size,0.0);
+        }
+        else {
+            phi_6 = std::complex<long double> (0.0,0.0);
+        }
+        
+        bondorderparafile << std::norm(phi_6) << std::endl;
+    }
     
     std::cout << "####################################################################################################" << std::endl;
     std::cout << " Done! " << std::endl;

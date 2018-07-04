@@ -1,0 +1,4 @@
+/Applications/CLion.app/Contents/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -D CMAKE_C_COMPILER=/usr/bin/gcc -D CMAKE_CXX_COMPILER=/usr/bin/g++ -G "CodeBlocks - Unix Makefiles" "/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest"
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/cmake-build-debug

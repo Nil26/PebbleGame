@@ -1,0 +1,1 @@
+/usr/bin/g++    -std=c++11 -O3 -g -v -g -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/PebbleGameTest.dir/SiteRP.cpp.o CMakeFiles/PebbleGameTest.dir/bond.cpp.o CMakeFiles/PebbleGameTest.dir/main.cpp.o CMakeFiles/PebbleGameTest.dir/SiteRP_cont.cpp.o  -o PebbleGameTest 

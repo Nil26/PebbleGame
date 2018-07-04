@@ -1,0 +1,86 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/SiteRP.cpp
+iostream
+-
+vector
+-
+stack
+-
+fstream
+-
+math.h
+-
+siteRP.h
+/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/siteRP.h
+
+/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/SiteRP_cont.cpp
+SiteRP_cont.h
+/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/SiteRP_cont.h
+boost/tokenizer.hpp
+-
+boost/foreach.hpp
+-
+sstream
+-
+
+/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/SiteRP_cont.h
+vector
+-
+stack
+-
+iostream
+-
+fstream
+-
+math.h
+-
+string
+-
+bond.h
+/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/bond.h
+site.h
+/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/site.h
+
+/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/bond.cpp
+bond.h
+/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/bond.h
+
+/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/bond.h
+iostream
+-
+
+/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/main.cpp
+time.h
+-
+iomanip
+-
+bond.h
+/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/bond.h
+site.h
+/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/site.h
+siteRP.h
+/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/siteRP.h
+SiteRP_cont.h
+/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/SiteRP_cont.h
+
+/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/site.h
+
+/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/siteRP.h
+vector
+-
+stack
+-
+iostream
+-
+fstream
+-
+bond.h
+/Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/bond.h
+

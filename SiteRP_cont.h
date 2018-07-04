@@ -47,6 +47,10 @@ public:
     std::stack<int> placesbeen;            // The list of places been while looking for a pebble
     std::ofstream myfile;                  // The file stream to output the mainly wanted info
     std::ofstream rclusterfile;            // the file stream to output the rigid cluster decomposition info
+    std::ofstream coordnumfile;             // the file stream to output the coordination number info
+    std::ofstream coordnum_hist_file;       // the file stream to output the coordination number info in histogram
+    std::ofstream bondorderparafile;        // the file stream to output the bond order parameter (phi-6)
+
     
     double* beenthere;    // The array to mark if a vertex is visited in DFS
     
@@ -55,10 +59,12 @@ public:
 
     int* CoordDist;        // the coordination number distribution
 
+    double BondCriteria;
+
     //Constructor and destructor
     //SiteRP_cont(std::vector<site>& VerticesInput);
     //SiteRP_cont(int a) {numparts = a;};
-    SiteRP_cont(int sizeIN, std::string FileNameIN, std::string ReadPATHIN, std::string OutPATHIN){
+    SiteRP_cont(int sizeIN, std::string FileNameIN, std::string ReadPATHIN, std::string OutPATHIN, double BondLEN){
         SIZE = sizeIN;
         pc = new short[sizeIN];
         rcluster_site = new std::vector<int>[sizeIN];
@@ -73,6 +79,7 @@ public:
         FileName = FileNameIN;
         ReadPATH = ReadPATHIN;
         OutPATH = OutPATHIN;
+        BondCriteria = BondLEN;
     };
     
     ~SiteRP_cont(){
@@ -166,7 +173,9 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void setfilestream();
+    void setfilestream_rigid_decomposition();
+    void setfilestream_coordination_number();
+    void setfilestream_bond_order_parameter();
     void log(std::pair<int,int> span);
 
 // listedges lists the edges from site i
@@ -233,18 +242,26 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     void ReadVerticeInfo();
-
+    
+    void ReadVerticeInfofromdump();
+    
     void ReadVerticeInfoFromCSV();
 
     float distance(site &a, site &b);
 
     void BuildNetwork(); //build the network with site information
     
+    void RigidClusterDecomposition(); //run pebble game and identify the spanning rigid cluster
+    
     void StudyArtificialNetwork();
 
     void RigidAtomWriteBack();
+    
+    void RigidAtomWriteBack_dump();
 
     void CoordNumber();
+    
+    void BondOrderParameter();
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

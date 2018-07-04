@@ -1,0 +1,19 @@
+Start testing: May 07 03:35 EDT
+----------------------------------------------------------
+Unable to find executable: /Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/cmake-build-debug/SiteRP_cont_test
+1/1 Testing: SiteRP_cont_test
+1/1 Test: SiteRP_cont_test
+Command: ""
+Directory: /Users/zhshang/Desktop/Pebble Game Project/PebbleGameTest/cmake-build-debug
+"SiteRP_cont_test" start time: 
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"SiteRP_cont_test" end time: May 07 03:35 EDT
+"SiteRP_cont_test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: May 07 03:35 EDT
